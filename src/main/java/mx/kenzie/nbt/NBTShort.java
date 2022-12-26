@@ -1,4 +1,4 @@
-package mx.kenzie.wellspring.nbt;
+package mx.kenzie.nbt;
 
 import java.io.EOFException;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package mx.kenzie.wellspring.nbt;
+package mx.kenzie.nbt;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -1,6 +1,9 @@
-package mx.kenzie.wellspring.nbt;
+package mx.kenzie.nbt;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public record NBTLong(Long value) implements NBTValue<Long>, NBT {
     public NBTLong(Object value) {

@@ -1,6 +1,5 @@
-package mx.kenzie.wellspring.nbt;
+package mx.kenzie.nbt;
 
-import mx.kenzie.wellspring.BasicTest;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -9,7 +8,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-public class NBTTest extends BasicTest {
+public class NBTTest {
     
     @Test
     public void basic() {
@@ -98,6 +97,5 @@ public class NBTTest extends BasicTest {
         compound.write(stream);
         return stream.toByteArray();
     }
-    
     
 }

@@ -214,6 +214,13 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
     public List<NBT> value() {
         return list;
     }
+
+    public List<?> revert() {
+        LinkedList<Object> list = new LinkedList<>();
+        for(NBT entry : this)
+            list.add(NBT.revert(entry));
+        return list;
+    }
     
     @Override
     public String toString() {

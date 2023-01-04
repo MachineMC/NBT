@@ -163,6 +163,13 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     public Map<String, NBT> value() {
         return map;
     }
+
+    public Map<String, ?> revert() {
+        HashMap<String, Object> map = new HashMap<>();
+        for(Map.Entry<String, NBT> entry : entrySet())
+            map.put(entry.getKey(), NBT.revert(entry.getValue()));
+        return map;
+    }
     
     @Override
     public String toString() {

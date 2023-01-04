@@ -15,6 +15,10 @@ public interface NBT {
         for (Tag tag : Tag.values()) for (Class<?> type : tag.types) if (type.isInstance(value)) return tag.make(value);
         return NBTEnd.INSTANCE;
     }
+
+    static Object revert(NBT nbt) {
+        return nbt.tag().revert(nbt);
+    }
     
     <Type> Type value();
     
@@ -27,34 +31,42 @@ public interface NBT {
     
     enum Tag implements Type {
         END,
-        BYTE(NBTByte::new, Byte.class),
-        SHORT(NBTShort::new, Short.class),
-        INT(NBTInt::new, Integer.class),
-        LONG(NBTLong::new, Long.class),
-        FLOAT(NBTFloat::new, Float.class),
-        DOUBLE(NBTDouble::new, Double.class),
-        BYTE_ARRAY(NBTByteArray::new, byte[].class),
-        STRING(NBTString::new, String.class),
-        LIST(NBTList::new, List.class),
-        COMPOUND(NBTCompound::new, Map.class),
-        INT_ARRAY(NBTIntArray::new, int[].class),
-        LONG_ARRAY(NBTLongArray::new, long[].class);
+        BYTE(NBTByte::new, (NBT::value), Byte.class),
+        SHORT(NBTShort::new, (NBT::value), Short.class),
+        INT(NBTInt::new, (NBT::value), Integer.class),
+        LONG(NBTLong::new, (NBT::value), Long.class),
+        FLOAT(NBTFloat::new, (NBT::value), Float.class),
+        DOUBLE(NBTDouble::new, (NBT::value), Double.class),
+        BYTE_ARRAY(NBTByteArray::new, (nbt -> ((byte[]) nbt.value()).clone()), byte[].class),
+        STRING(NBTString::new, (NBT::value), String.class),
+        LIST(NBTList::new, (nbt -> ((NBTList) nbt).revert()), List.class),
+        COMPOUND(NBTCompound::new, (nbt -> ((NBTCompound) nbt).revert()), Map.class),
+        INT_ARRAY(NBTIntArray::new, (nbt -> ((int[]) nbt.value()).clone()), int[].class),
+        LONG_ARRAY(NBTLongArray::new, (nbt -> ((long[]) nbt.value()).clone()), long[].class);
         public final Class<?>[] types;
-        public final Function<Object, NBT> function;
+        public final Function<Object, NBT> make;
+        public final Function<NBT, Object> revert;
         
-        Tag(Function<Object, NBT> function, Class<?>... types) {
-            this.function = function;
+        Tag(Function<Object, NBT> make, Function<NBT, Object> revert, Class<?>... types) {
+            this.make = make;
+            this.revert = revert;
             this.types = types;
         }
         
         Tag() {
             this.types = new Class[0];
-            this.function = NBTEnd::getInstance;
+            this.make = NBTEnd::getInstance;
+            this.revert = (nbt -> null);
         }
         
         public NBT make(Object value) {
-            return function.apply(value);
+            return make.apply(value);
         }
+
+        public Object revert(NBT nbt) {
+            return revert.apply(nbt);
+        }
+
     }
     
     interface Type {

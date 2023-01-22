@@ -11,6 +11,38 @@ import java.util.List;
 public class NBTTest {
     
     @Test
+    public void iteration() {
+        final NBTIntArray array = new NBTIntArray(new int[] {10, 14, 2});
+        assert array.size() == 3;
+        final Integer[] integers = array.toArray();
+        assert integers.length == 3;
+        for (Integer integer : array) assert integer > 1 && integer < 15;
+        int count = 0;
+        for (Integer integer : array) count += integer;
+        assert count == 26;
+    }
+    
+    @Test
+    public void bytes() throws IOException {
+        final NBTCompound compound = new NBTCompound();
+        compound.set("first", (byte) 10);
+        compound.set("test", (byte) -10);
+        assert compound.get("first") instanceof Byte;
+        assert compound.get("test") instanceof Byte;
+        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        compound.write(stream);
+        final byte[] bytes = stream.toByteArray();
+        final ByteArrayInputStream input = new ByteArrayInputStream(bytes);
+        final NBTCompound read = new NBTCompound(input);
+        assert read.containsKey("first");
+        assert read.containsKey("test");
+        assert read.get("first") instanceof Byte;
+        assert read.get("test") instanceof Byte;
+        assert read.get("first").equals((byte) 10) : read.get("first");
+        assert read.get("test").equals((byte) -10) : read.get("test");
+    }
+    
+    @Test
     public void basic() {
         final NBTCompound compound = new NBTCompound();
         compound.set("hello", "there");

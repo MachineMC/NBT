@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 public record NBTString(String value) implements NBTValue<String>, NBT {
     public NBTString(Object value) {
-        this(value.toString());
+        this(value instanceof String string ? string : value.toString());
     }
     
     public NBTString(InputStream stream) throws IOException {

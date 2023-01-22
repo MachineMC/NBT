@@ -6,7 +6,7 @@ import java.io.OutputStream;
 
 public record NBTFloat(Float value) implements NBTValue<Float>, NBT {
     public NBTFloat(Object value) {
-        this((Float) value);
+        this(((Number) value).floatValue());
     }
     
     public NBTFloat(InputStream stream) throws IOException {

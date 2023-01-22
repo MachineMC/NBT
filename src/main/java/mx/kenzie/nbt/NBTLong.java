@@ -7,7 +7,7 @@ import java.io.OutputStream;
 
 public record NBTLong(Long value) implements NBTValue<Long>, NBT {
     public NBTLong(Object value) {
-        this((Long) value);
+        this(((Number) value).longValue());
     }
     
     public NBTLong(InputStream stream) throws IOException {

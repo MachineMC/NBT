@@ -7,7 +7,7 @@ import java.io.OutputStream;
 
 public record NBTInt(Integer value) implements NBTValue<Integer>, NBT {
     public NBTInt(Object value) {
-        this((Integer) value);
+        this(((Number) value).intValue());
     }
     
     public NBTInt(InputStream stream) throws IOException {

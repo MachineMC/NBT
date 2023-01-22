@@ -7,7 +7,7 @@ import java.io.OutputStream;
 
 public record NBTShort(Short value) implements NBTValue<Short>, NBT {
     public NBTShort(Object value) {
-        this((Short) value);
+        this(((Number) value).shortValue());
     }
     
     public NBTShort(InputStream stream) throws IOException {

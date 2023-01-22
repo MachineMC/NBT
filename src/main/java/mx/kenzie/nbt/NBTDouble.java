@@ -6,7 +6,7 @@ import java.io.OutputStream;
 
 public record NBTDouble(Double value) implements NBTValue<Double>, NBT {
     public NBTDouble(Object value) {
-        this((Double) value);
+        this(((Number) value).doubleValue());
     }
     
     public NBTDouble(InputStream stream) throws IOException {

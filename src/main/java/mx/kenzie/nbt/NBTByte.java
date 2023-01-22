@@ -6,7 +6,7 @@ import java.io.OutputStream;
 
 public record NBTByte(Byte value) implements NBTValue<Byte>, NBT {
     public NBTByte(Object value) {
-        this((Byte) value);
+        this(((Number) value).byteValue());
     }
     
     public NBTByte(InputStream stream) throws IOException {

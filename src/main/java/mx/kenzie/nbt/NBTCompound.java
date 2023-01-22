@@ -45,7 +45,7 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
             if (tag == Tag.END) return;
             final String key = NBTString.decodeString(stream);
             final NBT nbt = switch (tag) {
-                case BYTE -> new NBTByte(stream.read());
+                case BYTE -> new NBTByte(stream);
                 case SHORT -> new NBTShort(stream);
                 case INT -> new NBTInt(stream);
                 case LONG -> new NBTLong(stream);

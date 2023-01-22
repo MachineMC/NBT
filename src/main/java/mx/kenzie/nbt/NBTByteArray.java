@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT {
+public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT, NBTArray<Byte> {
     public NBTByteArray(Object value) {
         this((byte[]) value);
     }
@@ -36,4 +36,17 @@ public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT {
     public Tag tag() {
         return Tag.BYTE_ARRAY;
     }
+    
+    @Override
+    public Byte[] toArray() {
+        final Byte[] bytes = new Byte[value.length];
+        for (int i = 0; i < value.length; i++) bytes[i] = value[i];
+        return bytes;
+    }
+    
+    @Override
+    public int size() {
+        return value.length;
+    }
+    
 }

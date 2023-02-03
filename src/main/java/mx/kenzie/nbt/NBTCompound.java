@@ -51,6 +51,13 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         else this.map.put(key, NBT.convert(value));
     }
 
+    public <Type> void set(String key, Type value, Inserter<Type> inserter) {
+        if (value == null) this.remove(key);
+        final NBTCompound compound = new NBTCompound();
+        inserter.accept(compound, value);
+        this.map.put(key, compound);
+    }
+
     public void read(InputStream stream) throws IOException {
         final Tag[] tags = Tag.values();
         for (int i = stream.read(); i != -1; i = stream.read()) {
@@ -155,6 +162,16 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     public <Type> Type get(String key, Type alternative) {
         if (alternative instanceof NBT) return (Type) map.getOrDefault(key, NBT.convert(alternative));
         return map.getOrDefault(key, NBT.convert(alternative)).value();
+    }
+
+    public <Type> Type get(String key, Extractor<Type> extractor) {
+        if (map.get(key) instanceof NBTCompound compound) return extractor.apply(compound);
+        return null;
+    }
+
+    public <Type> Type get(String key, Extractor<Type> extractor, Type alternative) {
+        if (map.get(key) instanceof NBTCompound compound) return extractor.apply(compound, alternative);
+        return alternative;
     }
 
     @Override

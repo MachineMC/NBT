@@ -5,10 +5,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class NBTTest {
 
@@ -140,6 +137,31 @@ public class NBTTest {
         assert compound.hasUUID("test");
         assert compound.get("test") instanceof int[];
         assert Objects.equals(compound.getUUID("test"), uuid);
+    }
+
+    @Test
+    public void customTypes() {
+        final NBTCompound compound = new NBTCompound();
+        compound.set("hello", "there");
+        assert compound.containsKey("hello");
+        assert compound.get("hello").equals("there");
+        compound.set("hello", "there", this::insert);
+        assert compound.containsKey("hello");
+        assert !compound.get("hello").equals("there");
+        assert compound.get("hello") instanceof Map<?, ?>;
+        assert compound.get("hello", this::extract, "beans").equals("there");
+        assert compound.get("beans", this::extract, "beans").equals("beans");
+        compound.remove("hello");
+        assert compound.get("hello", this::extract, "beans").equals("beans");
+        assert compound.get("hello", this::extract) == null;
+    }
+
+    private void insert(NBTCompound compound, String string) {
+        compound.set("value", string);
+    }
+
+    private String extract(NBTCompound compound) {
+        return compound.get("value");
     }
 
 }

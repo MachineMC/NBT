@@ -15,16 +15,16 @@ public interface NBT {
         for (Tag tag : Tag.values()) for (Class<?> type : tag.types) if (type.isInstance(value)) return tag.make(value);
         return NBTEnd.INSTANCE;
     }
-    
+
     <Type> Type value();
-    
+
     default void write(OutputStream stream) throws IOException {
     }
-    
+
     boolean softEquals(Object object);
-    
+
     Tag tag();
-    
+
     enum Tag implements Type {
         END,
         BYTE(NBTByte::new, Byte.class),
@@ -41,25 +41,25 @@ public interface NBT {
         LONG_ARRAY(NBTLongArray::new, long[].class);
         public final Class<?>[] types;
         public final Function<Object, NBT> function;
-        
+
         Tag(Function<Object, NBT> function, Class<?>... types) {
             this.function = function;
             this.types = types;
         }
-        
+
         Tag() {
             this.types = new Class[0];
             this.function = NBTEnd::getInstance;
         }
-        
+
         public NBT make(Object value) {
             return function.apply(value);
         }
     }
-    
+
     interface Type {
         int ordinal();
-        
+
         NBT make(Object value);
     }
 }

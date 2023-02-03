@@ -10,6 +10,6 @@ public sealed interface NBTValue<Type>
         if (this.equals(object)) return true;
         return (Objects.equals(this.value(), object));
     }
-    
+
     Type value();
 }

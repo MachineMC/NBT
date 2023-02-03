@@ -32,9 +32,22 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         this.read(stream);
     }
 
+    private static UUID fromInts(int[] array) {
+        if (array.length < 4) return null;
+        final long big = 0xFFFFFFFFL;
+        return new UUID((long) array[0] << 32 | (long) array[1] & big, (long) array[2] << 32 | (long) array[3] & big);
+    }
+
+    private static int[] toInts(UUID uuid) {
+        final long most = uuid.getMostSignificantBits();
+        final long least = uuid.getLeastSignificantBits();
+        return new int[]{(int) (most >> 32), (int) most, (int) (least >> 32), (int) least};
+    }
+
     public <Type> void set(String key, Type value) {
         if (value == null) this.remove(key);
         else if (value instanceof NBT nbt) this.map.put(key, nbt);
+        else if (value instanceof UUID uuid) this.setUUID(key, uuid);
         else this.map.put(key, NBT.convert(value));
     }
 
@@ -225,6 +238,41 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     @Override
     public Tag tag() {
         return Tag.COMPOUND;
+    }
+
+    public boolean contains(String key, NBT.Tag tag) {
+        if (!this.containsKey(key)) return false;
+        return map.get(key).tag() == tag;
+    }
+
+    public void setUUID(String key, UUID value) {
+        if (this.contains(key + "Most", Tag.LONG) && this.contains(key + "Least", Tag.LONG)) {
+            this.map.remove(key + "Most");
+            this.map.remove(key + "Least");
+        }
+        this.map.put(key, new NBTIntArray(toInts(value)));
+    }
+
+    public UUID getUUID(String key, UUID alternative) {
+        final UUID found = this.getUUID(key);
+        if (found == null) return alternative;
+        return found;
+    }
+
+    public UUID getUUID(String key) {
+        if (this.contains(key, Tag.INT_ARRAY)) { // I would love to know why we use four ints rather than two longs
+            final int[] value = this.get(key);
+            return fromInts(value);
+        } else if (this.contains(key + "Most", Tag.LONG) && this.contains(key + "Least", Tag.LONG)) {
+            return new UUID(this.get(key + "Most"), this.get(key + "Least"));
+        } else return null;
+    }
+
+    public boolean hasUUID(String key) {
+        if (this.contains(key + "Most", Tag.LONG) && this.contains(key + "Least", Tag.LONG)) return true;
+        if (!this.containsKey(key)) return false;
+        final NBT nbt = map.get(key);
+        return map.get(key).tag() == Tag.INT_ARRAY && nbt.value() instanceof int[] ints && ints.length == 4;
     }
 
 }

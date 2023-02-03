@@ -7,12 +7,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 public class NBTTest {
-    
+
     @Test
     public void iteration() {
-        final NBTIntArray array = new NBTIntArray(new int[] {10, 14, 2});
+        final NBTIntArray array = new NBTIntArray(new int[]{10, 14, 2});
         assert array.size() == 3;
         final Integer[] integers = array.toArray();
         assert integers.length == 3;
@@ -21,7 +23,7 @@ public class NBTTest {
         for (Integer integer : array) count += integer;
         assert count == 26;
     }
-    
+
     @Test
     public void bytes() throws IOException {
         final NBTCompound compound = new NBTCompound();
@@ -41,7 +43,7 @@ public class NBTTest {
         assert read.get("first").equals((byte) 10) : read.get("first");
         assert read.get("test").equals((byte) -10) : read.get("test");
     }
-    
+
     @Test
     public void basic() {
         final NBTCompound compound = new NBTCompound();
@@ -53,9 +55,9 @@ public class NBTTest {
         assert compound.get("hello").equals("there");
         assert compound.get("test").equals(10);
         assert compound.get("thing").equals(-5.2);
-        assert Arrays.equals(compound.get("ints"), new int[] {1, 2, 3});
+        assert Arrays.equals(compound.get("ints"), new int[]{1, 2, 3});
     }
-    
+
     @Test
     public void list() throws IOException {
         final NBTCompound compound = new NBTCompound(), second = new NBTCompound();
@@ -72,7 +74,7 @@ public class NBTTest {
         assert second.<List<NBT>>get("list").get(0).value().equals(10);
         assert second.<List<NBT>>get("list").get(1).value().equals(3);
     }
-    
+
     @Test
     public void stream() throws IOException {
         final NBTCompound first = new NBTCompound(), second = new NBTCompound();
@@ -92,7 +94,7 @@ public class NBTTest {
         assert second.get("hello").equals("there");
         assert second.get("test").equals(10);
         assert second.get("thing").equals(-5.2);
-        assert Arrays.equals(second.get("ints"), new int[] {1, 2, 3});
+        assert Arrays.equals(second.get("ints"), new int[]{1, 2, 3});
         second.clear();
         {
             final ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -104,9 +106,9 @@ public class NBTTest {
         assert second.get("hello").equals("there");
         assert second.get("test").equals(10);
         assert second.get("thing").equals(-5.2);
-        assert Arrays.equals(second.get("ints"), new int[] {1, 2, 3});
+        assert Arrays.equals(second.get("ints"), new int[]{1, 2, 3});
     }
-    
+
     @Test
     public void binary() throws IOException {
         final NBTCompound compound = new NBTCompound();
@@ -123,11 +125,21 @@ public class NBTTest {
         assert bytes[bytes.length - 2] == 10;
         assert bytes[bytes.length - 1] == NBT.Tag.END.ordinal();
     }
-    
+
     private byte[] bytes(NBTCompound compound) throws IOException {
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         compound.write(stream);
         return stream.toByteArray();
     }
-    
+
+    @Test
+    public void uuid() {
+        final NBTCompound compound = new NBTCompound();
+        final UUID uuid = UUID.randomUUID();
+        compound.set("test", uuid);
+        assert compound.hasUUID("test");
+        assert compound.get("test") instanceof int[];
+        assert Objects.equals(compound.getUUID("test"), uuid);
+    }
+
 }

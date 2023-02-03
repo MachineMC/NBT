@@ -39,7 +39,7 @@ public record NBTIntArray(int[] value) implements NBTValue<int[]>, NBT, NBTArray
     @Override
     public Integer[] toArray() {
         final Integer[] array = new Integer[value.length];
-        for (int i = 0; i < value.length; i++) array[i] = (Integer) value[i];
+        for (int i = 0; i < value.length; i++) array[i] = value[i];
         return array;
     }
 

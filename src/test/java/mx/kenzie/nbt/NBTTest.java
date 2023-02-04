@@ -161,9 +161,12 @@ public class NBTTest {
         final NBTCompound compound = new NBTCompound();
         compound.set("hello", "there");
         assert compound.containsKey("hello");
-        compound.setList("hello", null, this::insert);
+        compound.setList("hello", (String[]) null, this::insert);
         assert !compound.containsKey("hello");
         compound.setList("hello", List.of("there", "general", "kenobi"), this::insert);
+        assert compound.containsKey("hello");
+        assert compound.getList("hello").size() == 3;
+        compound.setList("hello", new String[]{"there", "general", "kenobi"}, this::insert);
         assert compound.containsKey("hello");
         assert compound.getList("hello").size() == 3;
         final List<String> list = compound.getList("hello", this::extract);

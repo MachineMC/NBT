@@ -52,10 +52,27 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     }
 
     public <Type> void set(String key, Type value, Inserter<Type> inserter) {
-        if (value == null) this.remove(key);
+        if (value == null) {
+            this.remove(key);
+            return;
+        }
         final NBTCompound compound = new NBTCompound();
         inserter.accept(compound, value);
         this.map.put(key, compound);
+    }
+
+    public <Type> void setList(String key, List<Type> value, Inserter<Type> inserter) {
+        if (value == null) {
+            this.remove(key);
+            return;
+        }
+        final NBTList list = new NBTList();
+        for (Type type : value) {
+            final NBTCompound compound = new NBTCompound();
+            inserter.accept(compound, type);
+            list.add(compound);
+        }
+        this.map.put(key, list);
     }
 
     public void read(InputStream stream) throws IOException {
@@ -172,6 +189,40 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     public <Type> Type get(String key, Extractor<Type> extractor, Type alternative) {
         if (map.get(key) instanceof NBTCompound compound) return extractor.apply(compound, alternative);
         return alternative;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <Type extends NBT> Type get(String key, Tag tag) {
+        final NBT nbt = map.get(key);
+        if (nbt == null) return null;
+        if (nbt.tag() == tag) return (Type) nbt;
+        throw new NBTException("Requested tag is a '" + nbt.tag() + "' not a '" + tag + "'.");
+    }
+
+    public NBTList getList(String key) {
+        final NBT nbt = map.get(key);
+        if (nbt instanceof NBTList list) return list;
+        return new NBTList(nbt);
+    }
+
+    public <Type> List<Type> getList(String key, Extractor<Type> extractor) {
+        if (!(map.get(key) instanceof NBTList list)) return null;
+        final List<Type> converted = new ArrayList<>(list.size());
+        for (NBT nbt : list) {
+            if (!(nbt instanceof NBTCompound compound)) throw new NBTException("List contains a non-compound element.");
+            converted.add(extractor.apply(compound));
+        }
+        return converted;
+    }
+
+    public <Type> List<Type> getList(String key, Extractor<Type> extractor, List<Type> alternative) {
+        try {
+            final List<Type> list = this.getList(key, extractor);
+            if (list != null) return list;
+            return alternative;
+        } catch (NBTException ex) {
+            return alternative;
+        }
     }
 
     @Override

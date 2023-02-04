@@ -20,7 +20,7 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
         this.list = new LinkedList<>();
     }
 
-    public NBTList(Object[] array) {
+    public NBTList(Object... array) {
         this();
         for (final Object value : array) this.add(NBT.convert(value));
     }
@@ -73,7 +73,17 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
     }
 
     public NBTList(Object value) {
-        this((Collection<?>) value);
+        this();
+        if (value instanceof Collection<?> collection)
+            for (final Object thing : collection) this.add(NBT.convert(thing));
+        else if (value instanceof Object[] array)
+            for (final Object thing : array) this.add(NBT.convert(thing));
+        else this.add(NBT.convert(value));
+    }
+
+    public NBTList(NBT... items) {
+        this();
+        this.addAll(Arrays.asList(items));
     }
 
     public NBTList(Collection<?> collection) {

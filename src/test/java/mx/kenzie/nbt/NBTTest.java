@@ -145,7 +145,7 @@ public class NBTTest {
         compound.set("hello", "there");
         assert compound.containsKey("hello");
         assert compound.get("hello").equals("there");
-        compound.set("hello", "there", this::insert);
+        compound.set("hello", this::insert, "there");
         assert compound.containsKey("hello");
         assert !compound.get("hello").equals("there");
         assert compound.get("hello") instanceof Map<?, ?>;
@@ -161,12 +161,12 @@ public class NBTTest {
         final NBTCompound compound = new NBTCompound();
         compound.set("hello", "there");
         assert compound.containsKey("hello");
-        compound.setList("hello", (String[]) null, this::insert);
+        compound.setList("hello", this::insert, (String[]) null);
         assert !compound.containsKey("hello");
-        compound.setList("hello", List.of("there", "general", "kenobi"), this::insert);
+        compound.setList("hello", this::insert, List.of("there", "general", "kenobi"));
         assert compound.containsKey("hello");
         assert compound.getList("hello").size() == 3;
-        compound.setList("hello", new String[]{"there", "general", "kenobi"}, this::insert);
+        compound.setList("hello", this::insert, "there", "general", "kenobi");
         assert compound.containsKey("hello");
         assert compound.getList("hello").size() == 3;
         final List<String> list = compound.getList("hello", this::extract);

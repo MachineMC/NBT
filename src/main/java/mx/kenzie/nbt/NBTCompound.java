@@ -51,7 +51,7 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         else this.map.put(key, NBT.convert(value));
     }
 
-    public <Type> void set(String key, Type value, Inserter<Type> inserter) {
+    public <Type> void set(String key, Inserter<Type> inserter, Type value) {
         if (value == null) {
             this.remove(key);
             return;
@@ -61,7 +61,7 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         this.map.put(key, compound);
     }
 
-    public <Type> void setList(String key, Collection<Type> value, Inserter<Type> inserter) {
+    public <Type> void setList(String key, Inserter<Type> inserter, Collection<Type> value) {
         if (value == null) {
             this.remove(key);
             return;
@@ -75,12 +75,13 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         this.map.put(key, list);
     }
 
-    public <Type> void setList(String key, Type[] value, Inserter<Type> inserter) {
+    @SafeVarargs
+    public final <Type> void setList(String key, Inserter<Type> inserter, Type... value) {
         if (value == null) {
             this.remove(key);
             return;
         }
-        this.setList(key, List.of(value), inserter);
+        this.setList(key, inserter, List.of(value));
     }
 
     public void read(InputStream stream) throws IOException {

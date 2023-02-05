@@ -9,6 +9,10 @@ public record NBTByte(Byte value) implements NBTValue<Byte>, NBT {
         this(((Number) value).byteValue());
     }
 
+    public NBTByte(Boolean value) {
+        this(value ? 1 : 0);
+    }
+
     public NBTByte(InputStream stream) throws IOException {
         this((byte) stream.read());
     }

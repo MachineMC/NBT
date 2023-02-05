@@ -12,6 +12,7 @@ public interface NBT {
         if (value instanceof NBT nbt) return nbt;
         if (value instanceof Map<?, ?> map) return new NBTCompound(map);
         if (value instanceof List<?> list) return new NBTList(list);
+        if (value instanceof Boolean boo) return new NBTByte(boo);
         for (Tag tag : Tag.values()) for (Class<?> type : tag.types) if (type.isInstance(value)) return tag.make(value);
         return NBTEnd.INSTANCE;
     }

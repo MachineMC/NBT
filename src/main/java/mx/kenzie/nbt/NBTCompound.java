@@ -181,13 +181,17 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     }
 
     public <Type> Type get(String key) {
-        return map.get(key).value();
+        final NBT nbt = map.get(key);
+        if (nbt == null) return null;
+        return nbt.value();
     }
 
     @SuppressWarnings("unchecked")
     public <Type> Type get(String key, Type alternative) {
         if (alternative instanceof NBT) return (Type) map.getOrDefault(key, NBT.convert(alternative));
-        return map.getOrDefault(key, NBT.convert(alternative)).value();
+        final NBT nbt = map.get(key);
+        if (nbt == null) return null;
+        return nbt.value();
     }
 
     public <Type> Type get(String key, Extractor<Type> extractor) {

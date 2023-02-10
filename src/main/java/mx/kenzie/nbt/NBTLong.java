@@ -7,13 +7,13 @@ import java.io.OutputStream;
 
 public record NBTLong(Long value) implements NBTValue<Long>, NBT {
     public NBTLong(Object value) {
-        this((Long) value);
+        this(((Number) value).longValue());
     }
-    
+
     public NBTLong(InputStream stream) throws IOException {
         this(decodeLong(stream));
     }
-    
+
     static long decodeLong(InputStream stream) throws IOException {
         final long a = stream.read(), b = stream.read(), c = stream.read(), d = stream.read();
         final long f = stream.read(), g = stream.read(), h = stream.read(), i = stream.read();
@@ -21,17 +21,7 @@ public record NBTLong(Long value) implements NBTValue<Long>, NBT {
         return (a << 56) + ((b & 255) << 48) + ((c & 255) << 40) + ((d & 255) << 32) +
             ((f & 255) << 24) + ((g & 255) << 16) + ((h & 255) << 8) + (i & 255);
     }
-    
-    @Override
-    public String toString() {
-        return value.toString() + "l";
-    }
-    
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        NBTLong.encodeLong(stream, value);
-    }
-    
+
     static void encodeLong(OutputStream stream, long value) throws IOException {
         final byte[] buffer = new byte[8];
         buffer[0] = (byte) (value >>> 56);
@@ -44,7 +34,17 @@ public record NBTLong(Long value) implements NBTValue<Long>, NBT {
         buffer[7] = (byte) (value);
         stream.write(buffer);
     }
-    
+
+    @Override
+    public String toString() {
+        return value.toString() + "l";
+    }
+
+    @Override
+    public void write(OutputStream stream) throws IOException {
+        NBTLong.encodeLong(stream, value);
+    }
+
     @Override
     public Tag tag() {
         return Tag.LONG;

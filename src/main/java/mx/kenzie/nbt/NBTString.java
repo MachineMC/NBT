@@ -8,13 +8,13 @@ import java.nio.charset.StandardCharsets;
 
 public record NBTString(String value) implements NBTValue<String>, NBT {
     public NBTString(Object value) {
-        this(value.toString());
+        this(value instanceof String string ? string : value.toString());
     }
-    
+
     public NBTString(InputStream stream) throws IOException {
         this(decodeString(stream));
     }
-    
+
     static String decodeString(InputStream stream) throws IOException {
         int a = stream.read(), b = stream.read();
         if (b < 0) throw new EOFException();
@@ -24,22 +24,7 @@ public record NBTString(String value) implements NBTValue<String>, NBT {
         assert read == length;
         return new String(bytes, StandardCharsets.UTF_8);
     }
-    
-    @Override
-    public String toString() {
-        return '"' + value + '"';
-    }
-    
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        NBTString.encodeString(stream, value);
-    }
-    
-    @Override
-    public Tag tag() {
-        return Tag.STRING;
-    }
-    
+
     static void encodeString(OutputStream stream, String value) throws IOException {
         final int length = value == null ? 0 : value.length();
         stream.write((byte) (length >>> 8));
@@ -48,10 +33,25 @@ public record NBTString(String value) implements NBTValue<String>, NBT {
         final byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
         stream.write(bytes);
     }
-    
+
+    @Override
+    public String toString() {
+        return '"' + value + '"';
+    }
+
+    @Override
+    public void write(OutputStream stream) throws IOException {
+        NBTString.encodeString(stream, value);
+    }
+
+    @Override
+    public Tag tag() {
+        return Tag.STRING;
+    }
+
     public int length() {
         return value == null ? 0 : value.length();
     }
-    
-    
+
+
 }

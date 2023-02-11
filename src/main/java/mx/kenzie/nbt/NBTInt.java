@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public record NBTInt(Integer value) implements NBTValue<Integer>, NBT {
+
     public NBTInt(Object value) {
         this(((Number) value).intValue());
     }
@@ -43,4 +44,10 @@ public record NBTInt(Integer value) implements NBTValue<Integer>, NBT {
     public Tag tag() {
         return Tag.INT;
     }
+
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
+    }
+
 }

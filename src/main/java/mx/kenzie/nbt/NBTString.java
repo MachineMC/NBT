@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 public record NBTString(String value) implements NBTValue<String>, NBT {
+
     public NBTString(Object value) {
         this(value instanceof String string ? string : value.toString());
     }
@@ -49,9 +50,13 @@ public record NBTString(String value) implements NBTValue<String>, NBT {
         return Tag.STRING;
     }
 
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
+    }
+
     public int length() {
         return value == null ? 0 : value.length();
     }
-
 
 }

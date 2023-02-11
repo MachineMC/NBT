@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public record NBTFloat(Float value) implements NBTValue<Float>, NBT {
+
     public NBTFloat(Object value) {
         this(((Number) value).floatValue());
     }
@@ -28,4 +29,10 @@ public record NBTFloat(Float value) implements NBTValue<Float>, NBT {
     public Tag tag() {
         return Tag.FLOAT;
     }
+
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
+    }
+
 }

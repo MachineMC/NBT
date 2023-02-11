@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
 
@@ -108,6 +109,11 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
     @Override
     public Tag tag() {
         return Tag.LIST;
+    }
+
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
     }
 
     public Tag getType() {
@@ -249,6 +255,12 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
         return list;
     }
 
+    public List<?> revert() {
+        return list.stream()
+                .map(NBT::revert)
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -262,4 +274,5 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
         builder.append(']');
         return builder.toString();
     }
+
 }

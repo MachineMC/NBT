@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 public record NBTIntArray(int[] value) implements NBTValue<int[]>, NBT, NBTArray<Integer> {
+
     public NBTIntArray(Object value) {
         this((int[]) value);
     }
@@ -34,6 +35,11 @@ public record NBTIntArray(int[] value) implements NBTValue<int[]>, NBT, NBTArray
     @Override
     public Tag tag() {
         return Tag.INT_ARRAY;
+    }
+
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
     }
 
     @Override

@@ -2,14 +2,14 @@ package mx.kenzie.nbt;
 
 import java.util.Iterator;
 
-public interface NBTArray<Value> extends Iterable<Value> {
+public interface NBTArray<T> extends Iterable<T> {
 
     @Override
-    default Iterator<Value> iterator() {
+    default Iterator<T> iterator() {
         return new ArrayIterator<>(this.toArray());
     }
 
-    Value[] toArray();
+    T[] toArray();
 
     default int size() {
         return this.toArray().length;
@@ -17,12 +17,13 @@ public interface NBTArray<Value> extends Iterable<Value> {
 
 }
 
-class ArrayIterator<Value> implements Iterator<Value> {
-    private final Value[] array;
+class ArrayIterator<T> implements Iterator<T> {
+
+    private final T[] array;
     private int index = 0;
 
     @SafeVarargs
-    public ArrayIterator(Value... array) {
+    public ArrayIterator(T... array) {
         this.array = array;
     }
 
@@ -32,7 +33,7 @@ class ArrayIterator<Value> implements Iterator<Value> {
     }
 
     @Override
-    public Value next() {
+    public T next() {
         return array[index++];
     }
 

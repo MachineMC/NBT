@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public record NBTEnd(Void value) implements NBTValue<Void>, NBT {
+
     public static final NBTEnd INSTANCE = new NBTEnd(null);
 
     public static NBTEnd getInstance(Object object) {
@@ -24,4 +25,10 @@ public record NBTEnd(Void value) implements NBTValue<Void>, NBT {
     public Tag tag() {
         return Tag.END;
     }
+
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
+    }
+
 }

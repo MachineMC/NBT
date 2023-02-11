@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<String>, Map<String, NBT>, NBT {
+
     private final Map<String, NBT> map = new HashMap<>();
 
     public NBTCompound(NBTCompound compound) {
@@ -44,14 +45,14 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         return new int[]{(int) (most >> 32), (int) most, (int) (least >> 32), (int) least};
     }
 
-    public <Type> void set(String key, Type value) {
+    public <T> void set(String key, T value) {
         if (value == null) this.remove(key);
         else if (value instanceof NBT nbt) this.map.put(key, nbt);
         else if (value instanceof UUID uuid) this.setUUID(key, uuid);
         else this.map.put(key, NBT.convert(value));
     }
 
-    public <Type> void set(String key, Inserter<Type> inserter, Type value) {
+    public <T> void set(String key, Inserter<T> inserter, T value) {
         if (value == null) {
             this.remove(key);
             return;
@@ -61,13 +62,13 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         this.map.put(key, compound);
     }
 
-    public <Type> void setList(String key, Inserter<Type> inserter, Collection<Type> value) {
+    public <T> void setList(String key, Inserter<T> inserter, Collection<T> value) {
         if (value == null) {
             this.remove(key);
             return;
         }
         final NBTList list = new NBTList();
-        for (Type type : value) {
+        for (T type : value) {
             final NBTCompound compound = new NBTCompound();
             inserter.accept(compound, type);
             list.add(compound);
@@ -76,7 +77,7 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     }
 
     @SafeVarargs
-    public final <Type> void setList(String key, Inserter<Type> inserter, Type... value) {
+    public final <T> void setList(String key, Inserter<T> inserter, T... value) {
         if (value == null) {
             this.remove(key);
             return;
@@ -180,35 +181,35 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         return map.entrySet();
     }
 
-    public <Type> Type get(String key) {
+    public <T> T get(String key) {
         final NBT nbt = map.get(key);
         if (nbt == null) return null;
         return nbt.value();
     }
 
     @SuppressWarnings("unchecked")
-    public <Type> Type get(String key, Type alternative) {
-        if (alternative instanceof NBT) return (Type) map.getOrDefault(key, NBT.convert(alternative));
+    public <T> T get(String key, T alternative) {
+        if (alternative instanceof NBT) return (T) map.getOrDefault(key, NBT.convert(alternative));
         final NBT nbt = map.get(key);
         if (nbt == null) return null;
         return nbt.value();
     }
 
-    public <Type> Type get(String key, Extractor<Type> extractor) {
+    public <T> T get(String key, Extractor<T> extractor) {
         if (map.get(key) instanceof NBTCompound compound) return extractor.apply(compound);
         return null;
     }
 
-    public <Type> Type get(String key, Extractor<Type> extractor, Type alternative) {
+    public <T> T get(String key, Extractor<T> extractor, T alternative) {
         if (map.get(key) instanceof NBTCompound compound) return extractor.apply(compound, alternative);
         return alternative;
     }
 
     @SuppressWarnings("unchecked")
-    public <Type extends NBT> Type get(String key, Tag tag) {
+    public <T extends NBT> T get(String key, Tag tag) {
         final NBT nbt = map.get(key);
         if (nbt == null) return null;
-        if (nbt.tag() == tag) return (Type) nbt;
+        if (nbt.tag() == tag) return (T) nbt;
         throw new NBTException("Requested tag is a '" + nbt.tag() + "' not a '" + tag + "'.");
     }
 
@@ -218,9 +219,9 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         return new NBTList(nbt);
     }
 
-    public <Type> List<Type> getList(String key, Extractor<Type> extractor) {
+    public <T> List<T> getList(String key, Extractor<T> extractor) {
         if (!(map.get(key) instanceof NBTList list)) return null;
-        final List<Type> converted = new ArrayList<>(list.size());
+        final List<T> converted = new ArrayList<>(list.size());
         for (NBT nbt : list) {
             if (!(nbt instanceof NBTCompound compound)) throw new NBTException("List contains a non-compound element.");
             converted.add(extractor.apply(compound));
@@ -228,9 +229,9 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         return converted;
     }
 
-    public <Type> List<Type> getList(String key, Extractor<Type> extractor, List<Type> alternative) {
+    public <T> List<T> getList(String key, Extractor<T> extractor, List<T> alternative) {
         try {
-            final List<Type> list = this.getList(key, extractor);
+            final List<T> list = this.getList(key, extractor);
             if (list != null) return list;
             return alternative;
         } catch (NBTException ex) {
@@ -256,6 +257,12 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     @Override
     public Map<String, NBT> value() {
         return map;
+    }
+
+    public Map<String, ?> revert() {
+        HashMap<String, Object> hashMap = new HashMap<>(map.size());
+        map.forEach((key, nbt) -> hashMap.put(key, NBT.revert(nbt)));
+        return hashMap;
     }
 
     @Override
@@ -319,6 +326,11 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     @Override
     public Tag tag() {
         return Tag.COMPOUND;
+    }
+
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
     }
 
     public boolean contains(String key, NBT.Tag tag) {

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public record NBTShort(Short value) implements NBTValue<Short>, NBT {
+
     public NBTShort(Object value) {
         this(((Number) value).shortValue());
     }
@@ -35,4 +36,10 @@ public record NBTShort(Short value) implements NBTValue<Short>, NBT {
     public Tag tag() {
         return Tag.SHORT;
     }
+
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
+    }
+
 }

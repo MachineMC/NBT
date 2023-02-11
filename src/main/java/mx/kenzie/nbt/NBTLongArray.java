@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 public record NBTLongArray(long[] value) implements NBTValue<long[]>, NBT, NBTArray<Long> {
+
     public NBTLongArray(Object value) {
         this((long[]) value);
     }
@@ -34,6 +35,11 @@ public record NBTLongArray(long[] value) implements NBTValue<long[]>, NBT, NBTAr
     @Override
     public Tag tag() {
         return Tag.LONG_ARRAY;
+    }
+
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
     }
 
     @Override

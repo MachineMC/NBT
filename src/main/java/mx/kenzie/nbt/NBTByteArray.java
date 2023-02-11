@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT, NBTArray<Byte> {
+
     public NBTByteArray(Object value) {
         this((byte[]) value);
     }
@@ -35,6 +36,11 @@ public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT, NBTAr
     @Override
     public Tag tag() {
         return Tag.BYTE_ARRAY;
+    }
+
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
     }
 
     @Override

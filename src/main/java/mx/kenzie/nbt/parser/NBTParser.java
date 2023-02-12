@@ -19,27 +19,40 @@ public class NBTParser {
         this.nbtCompound = new NBTCompound();
     }
 
-    public NBTCompound parse() {
-        return handleCompound();
+    public NBTCompound parse() throws MalformedNBTException {
+        try {
+            return handleCompound();
+        } catch (MalformedNBTException e) {
+            throw new MalformedNBTException("The NBT data provided is invalid and cannot be parsed.", e, cursor);
+        }
     }
 
-    private NBTCompound handleCompound() {
+    private NBTCompound handleCompound() throws MalformedNBTException {
         eat('{');
-        do {
-            if (!hasNext())
-                throw new MalformedNBTException();
+        skipWhitespace();
 
-            char current = step();
-            if (current == '}')
-                return nbtCompound;
-
+        while (hasNext() && peek() != '}') {
+            step();
             String key = key();
+            skipWhitespace();
             eat(':');
             nbtCompound.set(key, value());
             skipWhitespace();
-        } while (current() != '}' && next() == ',');
+
+            if (hasNext() && peek() == ',') {
+                eat(',');
+                next();
+            }
+
+        }
         if (hasNext())
-            throw new MalformedNBTException();
+            next();
+        if (hasNext()) {
+            throw new MalformedNBTException("An unexpected character was found after the end of the NBT data.", cursor);
+        } else if (current() != '}') {
+            throw new MalformedNBTException("The NBT data ended unexpectedly. A compound must be closed by a '}' character.", cursor);
+        }
+
         return nbtCompound;
     }
 
@@ -49,7 +62,7 @@ public class NBTParser {
         return handleUnquotedString().value();
     }
 
-    private NBT value() {
+    private NBT value() throws MalformedNBTException {
         char current = step();
 
         NBT nbt = null;
@@ -96,10 +109,8 @@ public class NBTParser {
         if (nbt == null)
             nbt = handleUnquotedString();
 
-        if (nbt != null)
-            return nbt;
+        return nbt;
 
-        throw new MalformedNBTException(String.format("Unexpected character '%s'", current()));
     }
 
     private int findClosingBrace(String string, int index) {
@@ -138,12 +149,14 @@ public class NBTParser {
             escaped = false;
             stringBuilder.append(current);
         }
-        throw new MalformedNBTException("Unterminated quoted literal");
+        throw new MalformedNBTException("Unterminated quoted literal", cursor);
     }
 
     private NBTString handleUnquotedString() {
-        return new NBTString(readUntil(c -> !(Character.isDigit(c) || Character.isAlphabetic(c) || c == '_' || c == '-' || c == '.' || c == '+')));
-    }
+        String value = readUntil(c -> !(Character.isDigit(c) || Character.isAlphabetic(c) || c == '_' || c == '-' || c == '.' || c == '+'));
+        if (value.isEmpty())
+            throw new MalformedNBTException("Unable to parse unquoted string. Value is empty.", cursor);
+        return new NBTString(value);    }
 
     private NBT handleArray(Class<?> arrayClass) {
         List<Object> elements = new ArrayList<>();
@@ -154,7 +167,7 @@ public class NBTParser {
             Object value = value().value();
 
             if (!arrayClass.isInstance(value))
-                throw new MalformedNBTException("'" + value + "' is not of type '" + arrayClass.getSimpleName() + '\'');
+                throw new MalformedNBTException("Unable to parse array. Value is not of expected type " + arrayClass.getName() + ".", cursor);
 
             elements.add(value);
             loop = false;
@@ -187,7 +200,7 @@ public class NBTParser {
 
             return new NBTLongArray(longs);
         }
-        throw new MalformedNBTException("Unexpected array type '" + arrayClass + '\'');
+        throw new MalformedNBTException("Unexpected array type '" + arrayClass + '\'', cursor);
     }
 
     private NBTList handleList() {
@@ -224,7 +237,7 @@ public class NBTParser {
             switch (c) {
                 case '.':
                     if (usedDecimal) {
-                        throw new MalformedNBTException();
+                        throw new MalformedNBTException("The number contains multiple decimal points: " + stringBuilder, cursor);
                     } else {
                         usedDecimal = true;
                     }
@@ -274,6 +287,8 @@ public class NBTParser {
 
     private String readUntil(Predicate<Character> predicate) {
         char current = current();
+        if (predicate.test(current))
+            return "";
         StringBuilder builder = new StringBuilder();
         while (hasNext()) {
             builder.append(current);
@@ -293,6 +308,8 @@ public class NBTParser {
         if (!hasNext())
             return;
         readUntil(character -> character != ' ');
+        if (peek() == ' ')
+            next();
     }
 
     private void stepBack() {
@@ -319,9 +336,10 @@ public class NBTParser {
         return input.charAt(cursor - 1);
     }
 
-    private void eat(char c) {
-        if (next() != c)
-            throw new MalformedNBTException(String.format("Unexpected character '%s'", current()));
+    private void eat(char expected) {
+        char actual = hasNext() ? next() : 0;
+        if (actual != expected)
+            throw new MalformedNBTException(String.format("Expected character '%s' but found '%s'", expected, actual), cursor);
     }
 
     private void mark() {

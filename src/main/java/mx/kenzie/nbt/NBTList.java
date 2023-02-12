@@ -1,5 +1,7 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.exceptions.NBTException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

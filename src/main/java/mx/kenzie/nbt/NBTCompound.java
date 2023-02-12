@@ -1,5 +1,7 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.exceptions.NBTException;
+
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -273,7 +275,7 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         for (final Entry<String, NBT> entry : entrySet()) {
             if (first) first = false;
             else builder.append(", ");
-            builder.append('"').append(entry.getKey()).append('"').append(": ");
+            builder.append(entry.getKey()).append(": ");
             builder.append(entry.getValue().toString());
         }
         builder.append('}');

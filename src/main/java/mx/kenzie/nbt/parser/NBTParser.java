@@ -11,7 +11,7 @@ public class NBTParser {
 
     private final String input;
     private final NBTCompound nbtCompound;
-    private int cursor;
+    private int cursor = 0;
     private int mark = 0;
 
     public NBTParser(String input) {
@@ -20,6 +20,9 @@ public class NBTParser {
     }
 
     public NBTCompound parse() throws MalformedNBTException {
+        nbtCompound.clear();
+        cursor = 0;
+        mark = 0;
         try {
             return handleCompound();
         } catch (MalformedNBTException e) {
@@ -75,7 +78,7 @@ public class NBTParser {
                 cursor += parser.cursor;
             }
             case '\'', '"' -> {
-                nbt =  handleQuotedString();
+                nbt = handleQuotedString();
             }
             case '[' -> {
                 if (peek(1) == ';') {
@@ -86,11 +89,11 @@ public class NBTParser {
                         default -> null;
                     };
                     if (arrayClass != null) {
-                        nbt =  handleArray(arrayClass);
+                        nbt = handleArray(arrayClass);
                         break;
                     }
                 }
-                nbt =  handleList();
+                nbt = handleList();
             }
         }
 
@@ -164,6 +167,9 @@ public class NBTParser {
         eat(';');
         boolean loop;
         do {
+            skipWhitespace();
+            if (peek() == ']')
+                break;
             Object value = value().value();
 
             if (!arrayClass.isInstance(value))
@@ -207,6 +213,9 @@ public class NBTParser {
         NBTList list = new NBTList();
         boolean loop;
         do {
+            skipWhitespace();
+            if (peek() == ']')
+                break;
             list.add(value());
             loop = false;
             skipWhitespace();

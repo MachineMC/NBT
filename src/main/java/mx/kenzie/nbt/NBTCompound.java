@@ -1,5 +1,7 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.exceptions.NBTException;
+
 import mx.kenzie.nbt.visitor.NBTStringVisitor;
 import mx.kenzie.nbt.visitor.NBTVisitor;
 

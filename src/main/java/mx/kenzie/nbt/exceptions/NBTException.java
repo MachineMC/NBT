@@ -1,4 +1,4 @@
-package mx.kenzie.nbt;
+package mx.kenzie.nbt.exceptions;
 
 public class NBTException extends RuntimeException {
     public NBTException() {

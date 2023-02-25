@@ -2,6 +2,7 @@ package mx.kenzie.nbt;
 
 import mx.kenzie.nbt.visitor.NBTStringVisitor;
 import mx.kenzie.nbt.visitor.NBTVisitor;
+import mx.kenzie.nbt.exceptions.NBTException;
 
 import java.io.IOException;
 import java.io.InputStream;

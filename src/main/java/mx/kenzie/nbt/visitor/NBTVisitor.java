@@ -1,4 +1,6 @@
-package mx.kenzie.nbt;
+package mx.kenzie.nbt.visitor;
+
+import mx.kenzie.nbt.*;
 
 public interface NBTVisitor {
 

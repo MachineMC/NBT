@@ -1,12 +1,14 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.visitor.NBTVisitor;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public interface NBT {
+public interface NBT extends Cloneable {
 
     static NBT convert(Object value) {
         if (value == null) return NBTEnd.INSTANCE;
@@ -32,6 +34,8 @@ public interface NBT {
     Tag tag();
 
     void accept(NBTVisitor visitor);
+
+    NBT clone();
 
     enum Tag implements Type {
 

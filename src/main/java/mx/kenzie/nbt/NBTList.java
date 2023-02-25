@@ -1,5 +1,8 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.visitor.NBTStringVisitor;
+import mx.kenzie.nbt.visitor.NBTVisitor;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -171,11 +174,12 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
 
     @Override
     public boolean addAll(Collection<? extends NBT> c) {
-        return list.addAll(c);
+        return addAll(size(), c);
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends NBT> c) {
+        c.forEach(this::tag);
         return list.addAll(index, c);
     }
 
@@ -263,16 +267,33 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append('[');
-        boolean first = true;
-        for (final NBT nbt : list) {
-            if (first) first = false;
-            else builder.append(", ");
-            builder.append(nbt.toString());
+        return new NBTStringVisitor().visitNBT(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        NBTList nbtList = (NBTList) o;
+
+        return list.equals(nbtList.list);
+    }
+
+    @Override
+    public int hashCode() {
+        return list.hashCode();
+    }
+
+    @Override
+    public NBTList clone() {
+        try {
+            return (NBTList) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
         }
-        builder.append(']');
-        return builder.toString();
     }
 
 }

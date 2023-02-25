@@ -1,5 +1,8 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.visitor.NBTStringVisitor;
+import mx.kenzie.nbt.visitor.NBTVisitor;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,7 +26,7 @@ public record NBTIntArray(int[] value) implements NBTValue<int[]>, NBT, NBTArray
 
     @Override
     public String toString() {
-        return Arrays.toString(value);
+        return new NBTStringVisitor().visitNBT(this);
     }
 
     @Override
@@ -52,6 +55,32 @@ public record NBTIntArray(int[] value) implements NBTValue<int[]>, NBT, NBTArray
     @Override
     public int size() {
         return value.length;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        NBTIntArray nbtIntArray = (NBTIntArray) o;
+
+        return Arrays.equals(value, nbtIntArray.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(value);
+    }
+
+    @Override
+    public NBTIntArray clone() {
+        try {
+            return (NBTIntArray) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

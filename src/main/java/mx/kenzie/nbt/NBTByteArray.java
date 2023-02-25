@@ -76,12 +76,9 @@ public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT, NBTAr
     }
 
     @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public NBTByteArray clone() {
-        try {
-            return (NBTByteArray) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        return new NBTByteArray(value.clone());
     }
 
 }

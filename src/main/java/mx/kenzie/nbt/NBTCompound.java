@@ -379,12 +379,11 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     }
 
     @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public NBTCompound clone() {
-        try {
-            return (NBTCompound) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        Map<String, NBT> clone = new HashMap<>(map.size());
+        map.forEach((key, nbt) -> clone.put(key, nbt.clone()));
+        return new NBTCompound(clone);
     }
 
 }

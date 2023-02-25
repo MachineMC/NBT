@@ -131,9 +131,7 @@ public class NBTStringVisitor implements NBTVisitor {
     }
 
     @Override
-    public void visit(NBTEnd nbtEnd) {
-        builder.append("END");
-    }
+    public void visit(NBTEnd nbtEnd) {}
 
     @Override
     public String toString() {

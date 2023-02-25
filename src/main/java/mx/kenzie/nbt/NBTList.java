@@ -256,7 +256,7 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
 
     @Override
     public List<NBT> value() {
-        return list;
+        return Collections.unmodifiableList(list);
     }
 
     public List<?> revert() {
@@ -288,12 +288,11 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
     }
 
     @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public NBTList clone() {
-        try {
-            return (NBTList) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        List<NBT> clone = new LinkedList<>();
+        list.forEach(nbt -> clone.add(nbt.clone()));
+        return new NBTList(clone);
     }
 
 }

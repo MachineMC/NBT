@@ -75,12 +75,9 @@ public record NBTIntArray(int[] value) implements NBTValue<int[]>, NBT, NBTArray
     }
 
     @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public NBTIntArray clone() {
-        try {
-            return (NBTIntArray) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        return new NBTIntArray(value.clone());
     }
 
 }

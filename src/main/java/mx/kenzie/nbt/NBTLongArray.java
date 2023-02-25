@@ -75,12 +75,9 @@ public record NBTLongArray(long[] value) implements NBTValue<long[]>, NBT, NBTAr
     }
 
     @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public NBTLongArray clone() {
-        try {
-            return (NBTLongArray) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        return new NBTLongArray(value.clone());
     }
 
 }

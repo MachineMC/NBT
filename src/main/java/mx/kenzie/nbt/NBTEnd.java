@@ -1,5 +1,8 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.visitor.NBTStringVisitor;
+import mx.kenzie.nbt.visitor.NBTVisitor;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -13,7 +16,7 @@ public record NBTEnd(Void value) implements NBTValue<Void>, NBT {
 
     @Override
     public String toString() {
-        return "null";
+        return new NBTStringVisitor().visitNBT(this);
     }
 
     @Override
@@ -29,6 +32,20 @@ public record NBTEnd(Void value) implements NBTValue<Void>, NBT {
     @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof NBTEnd;
+    }
+
+    @Override
+    public NBTEnd clone() {
+        try {
+            return (NBTEnd) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

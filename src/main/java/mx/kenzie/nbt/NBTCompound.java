@@ -2,6 +2,9 @@ package mx.kenzie.nbt;
 
 import mx.kenzie.nbt.exceptions.NBTException;
 
+import mx.kenzie.nbt.visitor.NBTStringVisitor;
+import mx.kenzie.nbt.visitor.NBTVisitor;
+
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -269,17 +272,7 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append('{');
-        boolean first = true;
-        for (final Entry<String, NBT> entry : entrySet()) {
-            if (first) first = false;
-            else builder.append(", ");
-            builder.append(entry.getKey()).append(": ");
-            builder.append(entry.getValue().toString());
-        }
-        builder.append('}');
-        return builder.toString();
+        return new NBTStringVisitor().visitNBT(this);
     }
 
     public void read(File file) throws IOException {
@@ -368,6 +361,31 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         if (!this.containsKey(key)) return false;
         final NBT nbt = map.get(key);
         return map.get(key).tag() == Tag.INT_ARRAY && nbt.value() instanceof int[] ints && ints.length == 4;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        NBTCompound strings = (NBTCompound) o;
+
+        return map.equals(strings.map);
+    }
+
+    @Override
+    public int hashCode() {
+        return map.hashCode();
+    }
+
+    @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public NBTCompound clone() {
+        Map<String, NBT> clone = new HashMap<>(map.size());
+        map.forEach((key, nbt) -> clone.put(key, nbt.clone()));
+        return new NBTCompound(clone);
     }
 
 }

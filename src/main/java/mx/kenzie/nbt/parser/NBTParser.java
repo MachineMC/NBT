@@ -44,7 +44,6 @@ public class NBTParser {
 
             if (hasNext() && peek() == ',') {
                 eat(',');
-                next();
             }
 
         }

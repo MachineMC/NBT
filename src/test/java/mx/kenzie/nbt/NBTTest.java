@@ -175,6 +175,40 @@ public class NBTTest {
         assert list.equals(List.of("there", "general", "kenobi"));
     }
 
+    @Test
+    public void stringTest() {
+        final NBTCompound first = new NBTCompound();
+        first.set("hello", "there");
+        first.set("test", 10);
+        first.set("thing", -5.2);
+        first.set("ints", 1, 2, 3);
+
+        final NBTCompound second = new NBTCompound();
+        second.set("thing", -5.2);
+        second.set("ints", 1, 2, 3);
+        second.set("hello", "there");
+        second.set("test", 10);
+
+        assert first.toString().equals(second.toString());
+    }
+
+    @Test
+    public void equalsTest() {
+        final NBTCompound first = new NBTCompound();
+        first.set("hello", "there");
+        first.set("test", 10);
+        first.set("thing", -5.2);
+        first.set("ints", 1, 2, 3);
+
+        final NBTCompound second = new NBTCompound();
+        second.set("thing", -5.2);
+        second.set("ints", 1, 2, 3);
+        second.set("hello", "there");
+        second.set("test", 10);
+
+        assert first.equals(second);
+    }
+
     private void insert(NBTCompound compound, String string) {
         compound.set("value", string);
     }

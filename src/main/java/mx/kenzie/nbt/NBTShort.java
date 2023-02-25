@@ -1,5 +1,8 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.visitor.NBTStringVisitor;
+import mx.kenzie.nbt.visitor.NBTVisitor;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +26,7 @@ public record NBTShort(Short value) implements NBTValue<Short>, NBT {
 
     @Override
     public String toString() {
-        return value.toString() + "s";
+        return new NBTStringVisitor().visitNBT(this);
     }
 
     @Override
@@ -40,6 +43,32 @@ public record NBTShort(Short value) implements NBTValue<Short>, NBT {
     @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        NBTShort nbtShort = (NBTShort) o;
+
+        return value.equals(nbtShort.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+
+    @Override
+    public NBTShort clone() {
+        try {
+            return (NBTShort) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

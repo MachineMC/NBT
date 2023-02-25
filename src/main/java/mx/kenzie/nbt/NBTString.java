@@ -1,5 +1,8 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.visitor.NBTStringVisitor;
+import mx.kenzie.nbt.visitor.NBTVisitor;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +40,7 @@ public record NBTString(String value) implements NBTValue<String>, NBT {
 
     @Override
     public String toString() {
-        return '"' + value + '"';
+        return new NBTStringVisitor().visitNBT(this);
     }
 
     @Override
@@ -57,6 +60,60 @@ public record NBTString(String value) implements NBTValue<String>, NBT {
 
     public int length() {
         return value == null ? 0 : value.length();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        NBTString nbtString = (NBTString) o;
+
+        return value.equals(nbtString.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+
+    @Override
+    public NBTString clone() {
+        try {
+            return (NBTString) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String quoteAndEscape(String var0) {
+        StringBuilder builder = new StringBuilder();
+        char quote = 0;
+
+        for(int var3 = 0; var3 < var0.length(); ++var3) {
+            char current = var0.charAt(var3);
+
+            if (current == '\\') {
+                builder.append('\\');
+            } else if (current == '"' || current == '\'') {
+                if (quote == 0)
+                    quote = current == '"' ? '\'' : '"';
+
+                if (quote == current)
+                    builder.append('\\');
+            }
+
+            builder.append(current);
+        }
+
+        if (quote == 0)
+            quote = '\"';
+
+        builder.insert(0, quote);
+        builder.append(quote);
+        return builder.toString();
     }
 
 }

@@ -1,5 +1,8 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.visitor.NBTStringVisitor;
+import mx.kenzie.nbt.visitor.NBTVisitor;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,7 +23,7 @@ public record NBTByte(Byte value) implements NBTValue<Byte>, NBT {
 
     @Override
     public String toString() {
-        return value.toString() + "b";
+        return new NBTStringVisitor().visitNBT(this);
     }
 
     @Override
@@ -36,6 +39,32 @@ public record NBTByte(Byte value) implements NBTValue<Byte>, NBT {
     @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        NBTByte nbtByte = (NBTByte) o;
+
+        return value.equals(nbtByte.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+
+    @Override
+    public NBTByte clone() {
+        try {
+            return (NBTByte) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

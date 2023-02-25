@@ -1,5 +1,8 @@
 package mx.kenzie.nbt;
 
+import mx.kenzie.nbt.visitor.NBTStringVisitor;
+import mx.kenzie.nbt.visitor.NBTVisitor;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,7 +27,7 @@ public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT, NBTAr
 
     @Override
     public String toString() {
-        return Arrays.toString(value);
+        return new NBTStringVisitor().visitNBT(this);
     }
 
     @Override
@@ -53,6 +56,29 @@ public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT, NBTAr
     @Override
     public int size() {
         return value.length;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        NBTByteArray bytes = (NBTByteArray) o;
+
+        return Arrays.equals(value, bytes.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(value);
+    }
+
+    @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public NBTByteArray clone() {
+        return new NBTByteArray(value.clone());
     }
 
 }

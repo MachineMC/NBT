@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>mx.kenzie</groupId>
+    <groupId>org.machine</groupId>
     <artifactId>nbt</artifactId>
     <version>1.0.0</version>
     <name>NBT</name>
@@ -18,15 +18,15 @@
 
     <distributionManagement>
         <repository>
-            <id>kenzie</id>
-            <url>https://repo.kenzie.mx/releases</url>
+            <id>machine</id>
+            <url>http://www.machinemc.org/releases</url>
         </repository>
     </distributionManagement>
 
     <repositories>
         <repository>
-            <id>kenzie</id>
-            <url>https://repo.kenzie.mx/releases</url>
+            <id>machine</id>
+            <url>http://www.machinemc.org/releases</url>
         </repository>
     </repositories>
 

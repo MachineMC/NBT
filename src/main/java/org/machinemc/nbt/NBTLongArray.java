@@ -8,9 +8,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public record NBTLongArray(long[] value) implements NBTValue<long[]>, NBT, NBTArray<Long> {
+public final class NBTLongArray implements NBTValue<long[]>, NBT, NBTArray<Long> {
 
-    public NBTLongArray(Object value) {
+    private final long[] value;
+
+    public NBTLongArray(long[] value) {
+        this.value = value;
+    }
+
+    protected NBTLongArray(Object value) {
         this((long[]) value);
     }
 
@@ -78,6 +84,11 @@ public record NBTLongArray(long[] value) implements NBTValue<long[]>, NBT, NBTAr
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public NBTLongArray clone() {
         return new NBTLongArray(value.clone());
+    }
+
+    @Override
+    public long[] value() {
+        return value.clone();
     }
 
 }

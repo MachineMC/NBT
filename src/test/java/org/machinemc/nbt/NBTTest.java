@@ -26,8 +26,8 @@ public class NBTTest {
         final NBTCompound compound = new NBTCompound();
         compound.set("first", (byte) 10);
         compound.set("test", (byte) -10);
-        assert compound.get("first") instanceof Byte;
-        assert compound.get("test") instanceof Byte;
+        assert compound.getValue("first") instanceof Byte;
+        assert compound.getValue("test") instanceof Byte;
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         compound.write(stream);
         final byte[] bytes = stream.toByteArray();
@@ -35,10 +35,10 @@ public class NBTTest {
         final NBTCompound read = new NBTCompound(input);
         assert read.containsKey("first");
         assert read.containsKey("test");
-        assert read.get("first") instanceof Byte;
-        assert read.get("test") instanceof Byte;
-        assert read.get("first").equals((byte) 10) : read.get("first");
-        assert read.get("test").equals((byte) -10) : read.get("test");
+        assert read.getValue("first") instanceof Byte;
+        assert read.getValue("test") instanceof Byte;
+        assert read.getValue("first").equals((byte) 10) : read.getValue("first");
+        assert read.getValue("test").equals((byte) -10) : read.getValue("test");
     }
 
     @Test
@@ -49,10 +49,10 @@ public class NBTTest {
         compound.set("thing", -5.2);
         compound.set("ints", 1, 2, 3);
         assert compound.size() == 4;
-        assert compound.get("hello").equals("there");
-        assert compound.get("test").equals(10);
-        assert compound.get("thing").equals(-5.2);
-        assert Arrays.equals(compound.get("ints"), new int[]{1, 2, 3});
+        assert compound.getValue("hello").equals("there");
+        assert compound.getValue("test").equals(10);
+        assert compound.getValue("thing").equals(-5.2);
+        assert Arrays.equals(compound.getValue("ints"), new int[]{1, 2, 3});
     }
 
     @Test
@@ -67,9 +67,9 @@ public class NBTTest {
         final byte[] bytes = stream.toByteArray();
         second.read(new ByteArrayInputStream(bytes));
         assert second.size() == 1;
-        assert second.<List<NBT>>get("list").size() == 2;
-        assert second.<List<NBT>>get("list").get(0).value().equals(10);
-        assert second.<List<NBT>>get("list").get(1).value().equals(3);
+        assert second.<List<NBT>>getValue("list").size() == 2;
+        assert second.<List<NBT>>getValue("list").get(0).value().equals(10);
+        assert second.<List<NBT>>getValue("list").get(1).value().equals(3);
     }
 
     @Test
@@ -88,10 +88,10 @@ public class NBTTest {
             second.read(new ByteArrayInputStream(bytes));
         }
         assert second.size() == 4;
-        assert second.get("hello").equals("there");
-        assert second.get("test").equals(10);
-        assert second.get("thing").equals(-5.2);
-        assert Arrays.equals(second.get("ints"), new int[]{1, 2, 3});
+        assert second.getValue("hello").equals("there");
+        assert second.getValue("test").equals(10);
+        assert second.getValue("thing").equals(-5.2);
+        assert Arrays.equals(second.getValue("ints"), new int[]{1, 2, 3});
         second.clear();
         {
             final ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -100,10 +100,10 @@ public class NBTTest {
             second.readAll(new ByteArrayInputStream(bytes));
         }
         assert second.size() == 4;
-        assert second.get("hello").equals("there");
-        assert second.get("test").equals(10);
-        assert second.get("thing").equals(-5.2);
-        assert Arrays.equals(second.get("ints"), new int[]{1, 2, 3});
+        assert second.getValue("hello").equals("there");
+        assert second.getValue("test").equals(10);
+        assert second.getValue("thing").equals(-5.2);
+        assert Arrays.equals(second.getValue("ints"), new int[]{1, 2, 3});
     }
 
     @Test
@@ -135,7 +135,7 @@ public class NBTTest {
         final UUID uuid = UUID.randomUUID();
         compound.set("test", uuid);
         assert compound.hasUUID("test");
-        assert compound.get("test") instanceof int[];
+        assert compound.getValue("test") instanceof int[];
         assert Objects.equals(compound.getUUID("test"), uuid);
     }
 
@@ -144,16 +144,16 @@ public class NBTTest {
         final NBTCompound compound = new NBTCompound();
         compound.set("hello", "there");
         assert compound.containsKey("hello");
-        assert compound.get("hello").equals("there");
+        assert compound.getValue("hello").equals("there");
         compound.set("hello", this::insert, "there");
         assert compound.containsKey("hello");
-        assert !compound.get("hello").equals("there");
-        assert compound.get("hello") instanceof Map<?, ?>;
+        assert !compound.getValue("hello").equals("there");
+        assert compound.getValue("hello") instanceof Map<?, ?>;
         assert compound.get("hello", this::extract, "beans").equals("there");
         assert compound.get("beans", this::extract, "beans").equals("beans");
         compound.remove("hello");
         assert compound.get("hello", this::extract, "beans").equals("beans");
-        assert compound.get("hello", this::extract) == null;
+        assert compound.get("hello", (NBTValue.Extractor<String>) this::extract) == null;
     }
 
     @Test
@@ -214,7 +214,7 @@ public class NBTTest {
     }
 
     private String extract(NBTCompound compound) {
-        return compound.get("value");
+        return compound.getValue("value");
     }
 
 }

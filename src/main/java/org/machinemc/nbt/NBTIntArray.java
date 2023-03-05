@@ -8,9 +8,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public record NBTIntArray(int[] value) implements NBTValue<int[]>, NBT, NBTArray<Integer> {
+public final class NBTIntArray implements NBTValue<int[]>, NBT, NBTArray<Integer> {
 
-    public NBTIntArray(Object value) {
+    private final int[] value;
+
+    public NBTIntArray(int[] value) {
+        this.value = value;
+    }
+
+    protected NBTIntArray(Object value) {
         this((int[]) value);
     }
 
@@ -78,6 +84,11 @@ public record NBTIntArray(int[] value) implements NBTValue<int[]>, NBT, NBTArray
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public NBTIntArray clone() {
         return new NBTIntArray(value.clone());
+    }
+
+    @Override
+    public int[] value() {
+        return value.clone();
     }
 
 }

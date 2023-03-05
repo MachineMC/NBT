@@ -146,14 +146,35 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         return map.containsValue(value);
     }
 
+    @SuppressWarnings("unchecked")
+    public <T extends NBT> T get(String key, T alternative) {
+        final NBT nbt = map.get(key);
+        if(nbt != null) return (T) nbt;
+        return alternative;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends NBT> T get(String key, Tag tag) {
+        final NBT nbt = map.get(key);
+        if (nbt == null) return null;
+        if (nbt.tag() == tag) return (T) nbt;
+        throw new NBTException("Requested tag is a '" + nbt.tag() + "' not a '" + tag + "'.");
+    }
+
     @Override
     public NBT get(Object key) {
         return map.get(key);
     }
 
+    public NBT put(String key, Object value) {
+        NBT prev = get(key);
+        set(key, value);
+        return prev;
+    }
+
     @Override
     public NBT put(String key, NBT value) {
-        return map.put(key, value);
+        return put(key, (Object) value);
     }
 
     @Override
@@ -186,18 +207,23 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         return map.entrySet();
     }
 
-    public <T> T get(String key) {
+    public <T> T getValue(String key) {
         final NBT nbt = map.get(key);
         if (nbt == null) return null;
         return nbt.value();
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T get(String key, T alternative) {
-        if (alternative instanceof NBT) return (T) map.getOrDefault(key, NBT.convert(alternative));
+    public <T> T getValue(String key, T alternative) {
         final NBT nbt = map.get(key);
-        if (nbt == null) return null;
-        return nbt.value();
+        if(nbt != null) return nbt.value();
+        return alternative;
+    }
+
+    public <T> T getValue(String key, Class<T> source) {
+        final NBT nbt = map.get(key);
+        if(nbt == null) return null;
+        if(source.isAssignableFrom(nbt.value().getClass())) return nbt.value();
+        throw new NBTException("Requested class is a '" + nbt.value().getClass() + "' not a '" + source + "'.");
     }
 
     public <T> T get(String key, Extractor<T> extractor) {
@@ -208,14 +234,6 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
     public <T> T get(String key, Extractor<T> extractor, T alternative) {
         if (map.get(key) instanceof NBTCompound compound) return extractor.apply(compound, alternative);
         return alternative;
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends NBT> T get(String key, Tag tag) {
-        final NBT nbt = map.get(key);
-        if (nbt == null) return null;
-        if (nbt.tag() == tag) return (T) nbt;
-        throw new NBTException("Requested tag is a '" + nbt.tag() + "' not a '" + tag + "'.");
     }
 
     public NBTList getList(String key) {
@@ -261,7 +279,7 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
 
     @Override
     public Map<String, NBT> value() {
-        return map;
+        return Collections.unmodifiableMap(new HashMap<>(this));
     }
 
     public Map<String, ?> revert() {
@@ -347,12 +365,13 @@ public final class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<S
         return found;
     }
 
+    @SuppressWarnings("ConstantConditions")
     public UUID getUUID(String key) {
         if (this.contains(key, Tag.INT_ARRAY)) { // I would love to know why we use four ints rather than two longs
-            final int[] value = this.get(key);
+            final int[] value = this.getValue(key);
             return fromInts(value);
         } else if (this.contains(key + "Most", Tag.LONG) && this.contains(key + "Least", Tag.LONG)) {
-            return new UUID(this.get(key + "Most"), this.get(key + "Least"));
+            return new UUID(this.getValue(key + "Most"), this.getValue(key + "Least"));
         } else return null;
     }
 

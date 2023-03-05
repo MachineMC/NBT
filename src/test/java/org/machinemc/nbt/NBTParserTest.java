@@ -52,7 +52,7 @@ public class NBTParserTest {
 
         for (Map.Entry<String, NBT> entry : compound.entrySet()) {
             assert parsed.get(entry.getKey()) != null;
-            assert NBT.revert(entry.getValue()).equals(parsed.get(entry.getKey()));
+            assert NBT.revert(entry.getValue()).equals(parsed.getValue(entry.getKey()));
         }
     }
 
@@ -70,9 +70,9 @@ public class NBTParserTest {
 
         final NBTCompound parsed = new NBTParser(compound.toString()).parse();
 
-        long[] parsedLong = parsed.get("long");
-        byte[] parsedByte = parsed.get("byte");
-        int[] parsedInt = parsed.get("int");
+        long[] parsedLong = parsed.getValue("long");
+        byte[] parsedByte = parsed.getValue("byte");
+        int[] parsedInt = parsed.getValue("int");
 
         assert parsedLong.length == longArray.value().length;
         for (int i = 0; i < parsedLong.length; i++)

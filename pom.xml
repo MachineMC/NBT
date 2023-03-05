@@ -6,7 +6,7 @@
 
     <groupId>org.machinemc</groupId>
     <artifactId>nbt</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>NBT</name>
     <description>Data handlers for Minecraft's NBT format.</description>
 

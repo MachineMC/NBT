@@ -257,7 +257,7 @@ public final class NBTList implements NBTValue<List<NBT>>, NBT, List<NBT> {
 
     @Override
     public List<NBT> value() {
-        return Collections.unmodifiableList(list);
+        return Collections.unmodifiableList(new LinkedList<>(this));
     }
 
     public List<?> revert() {

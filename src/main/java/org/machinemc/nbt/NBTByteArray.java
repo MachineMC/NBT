@@ -8,9 +8,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT, NBTArray<Byte> {
+public final class NBTByteArray implements NBTValue<byte[]>, NBT, NBTArray<Byte> {
 
-    public NBTByteArray(Object value) {
+    private final byte[] value;
+
+    public NBTByteArray(byte[] value) {
+        this.value = value;
+    }
+
+    protected NBTByteArray(Object value) {
         this((byte[]) value);
     }
 
@@ -79,6 +85,11 @@ public record NBTByteArray(byte[] value) implements NBTValue<byte[]>, NBT, NBTAr
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public NBTByteArray clone() {
         return new NBTByteArray(value.clone());
+    }
+
+    @Override
+    public byte[] value() {
+        return value.clone();
     }
 
 }

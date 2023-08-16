@@ -66,4 +66,8 @@ public class NBTParser {
         return nbtCompound;
     }
 
+    public static NBTCompound parse(String input) {
+        return new NBTParser(input).parse();
+    }
+
 }

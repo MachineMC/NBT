@@ -13,11 +13,10 @@ class NBTValueParser implements NBTElementParser<NBT> {
         NBT nbt = null;
         switch (current) {
             case '{' -> {
-                String compound = reader.getInput().substring(reader.getCursor());
-                compound = compound.substring(0, findClosingBrace(compound) + 1);
-                NBTParser parser = new NBTParser(compound);
+                int start = reader.getCursor(), end = findClosingBrace(start, reader.getInput()) + 1;
+                NBTParser parser = new NBTParser(reader.substring(start, end));
                 nbt = parser.parse();
-                reader.setCursor(reader.getCursor() + parser.getReader().getCursor());
+                reader.setCursor(parser.getReader().getCursor());
                 return nbt;
             }
             case '\'', '"' -> {
@@ -52,13 +51,13 @@ class NBTValueParser implements NBTElementParser<NBT> {
         return nbt;
     }
 
-    private static int findClosingBrace(String string) {
-        if (string.charAt(0) != '{')
+    private static int findClosingBrace(int start, String string) {
+        if (string.charAt(start) != '{')
             return -1;
 
         char[] chars = string.toCharArray();
         int level = 0;
-        for (int i = 0; i < chars.length; i++) {
+        for (int i = start; i < chars.length; i++) {
             if (chars[i] == '{') {
                 level++;
             } else if (chars[i] == '}') {

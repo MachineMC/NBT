@@ -20,7 +20,7 @@ class ArrayParser implements NBTElementParser<NBT> {
             case 'B' -> Byte.class;
             case 'I' -> Integer.class;
             case 'L' -> Long.class;
-            default -> throw new MalformedNBTException("Unexpected array type '" + dataClass + '\'', reader.getCursor());
+            default -> throw MalformedNBTException.unexpectedArrayType(dataClass, reader.getCursor());
         };
         reader.eat(';');
         boolean loop;
@@ -28,10 +28,11 @@ class ArrayParser implements NBTElementParser<NBT> {
             reader.skipWhitespace();
             if (reader.peek() == ']')
                 break;
+            int start = reader.getCursor();
             Number value = new NumberParser().parse(reader).value();
 
             if (!arrayClass.isInstance(value))
-                throw new MalformedNBTException("Unable to parse array. Value is not of expected type " + arrayClass.getName() + ".", reader.getCursor());
+                throw MalformedNBTException.valueDoesNotMatchArrayType(arrayClass, start);
 
             elements.add(value);
             loop = false;

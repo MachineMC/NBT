@@ -9,20 +9,18 @@ class NumberParser implements NBTElementParser<NBT> {
     public NBT parse(StringReader reader) throws MalformedNBTException {
         char c;
         StringBuilder result = new StringBuilder();
-        boolean hasDecimal = false;
+        int start = reader.getCursor(), decimals = 0;
 
         while (isNumberAllowed(c = reader.peek())) {
-            if (c == '.') {
-                if (hasDecimal)
-                    throw new MalformedNBTException("The number contains multiple decimal points: " + result, reader.getCursor());
-                hasDecimal = true;
-            }
+            if (c == '.')
+                decimals++;
             result.append(reader.read());
         }
         String numberString = result.toString();
-        NBT nbt;
+        if (decimals > 1)
+            throw MalformedNBTException.multipleDecimaledNumber(numberString, start);
 
-        nbt = switch (Character.toLowerCase(reader.peek())) {
+        NBT nbt = switch (Character.toLowerCase(reader.peek())) {
             case 'b' -> new NBTByte(Byte.parseByte(numberString));
             case 's' -> new NBTShort(Short.parseShort(numberString));
             case 'l' -> new NBTLong(Long.parseLong(numberString));
@@ -32,8 +30,7 @@ class NumberParser implements NBTElementParser<NBT> {
         };
 
         if (nbt == null)
-            return hasDecimal ? new NBTDouble(Double.parseDouble(numberString))
-                    : new NBTInt(Integer.parseInt(numberString));
+            return decimals == 1 ? new NBTDouble(Double.parseDouble(numberString)) : new NBTInt(Integer.parseInt(numberString));
 
         reader.read();
         return nbt;

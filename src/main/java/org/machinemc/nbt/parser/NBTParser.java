@@ -10,34 +10,24 @@ public class NBTParser {
     private NBTCompound nbtCompound = new NBTCompound();
 
     public NBTParser(String input) {
-        this.reader = new StringReader(input);
+        this(new StringReader(input));
+    }
+
+    NBTParser(StringReader reader) {
+        this.reader = reader;
     }
 
     public NBTCompound parse() throws MalformedNBTException {
         reader.reset();
-        MalformedNBTException exception = null;
-        try {
-            reader.eat('{');
-            if (reader.peek() != '}')
-                nbtCompound = parseCompound(new NBTCompound());
-            if (!reader.canRead()) {
-                exception = new MalformedNBTException("The NBT data ended unexpectedly. A compound must be closed by a '}' character.", reader.getCursor());
-            } else if (reader.canRead(2)) {
-                exception = new MalformedNBTException("An unexpected character was found after the end of the NBT data.", reader.getCursor());
-            }
-            reader.eat('}');
-        } catch (StringIndexOutOfBoundsException e) {
-            exception = new MalformedNBTException("The NBT data ended unexpectedly. A compound must be closed by a '}' character.", reader.getCursor());
-        } catch (MalformedNBTException e) {
-            exception = e;
-        }
-
-        if (exception != null)
-            throw new MalformedNBTException("The NBT data provided is invalid and cannot be parsed.", exception, reader.getCursor());
+        reader.eat('{');
+        nbtCompound = reader.peek() == '}' ? new NBTCompound() : parseKeyValue(new NBTCompound());
+        reader.eat('}');
+        if (reader.canRead())
+            throw MalformedNBTException.unexpectedTrailingCharacter(reader.getCursor() + 1);
         return nbtCompound;
     }
 
-    private NBTCompound parseCompound(NBTCompound nbtCompound) throws MalformedNBTException {
+    private NBTCompound parseKeyValue(NBTCompound nbtCompound) throws MalformedNBTException {
         String key = key();
         reader.skipWhitespace();
         reader.eat(':');
@@ -46,7 +36,7 @@ public class NBTParser {
         reader.skipWhitespace();
         if (reader.canRead() && reader.peek() == ',') {
             reader.read();
-            parseCompound(nbtCompound);
+            parseKeyValue(nbtCompound);
         }
         return nbtCompound;
     }

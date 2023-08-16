@@ -38,13 +38,13 @@ class StringParser implements NBTElementParser<NBTString> {
             escaped = false;
             stringBuilder.append(current);
         }
-        throw new MalformedNBTException("Unterminated quoted literal", reader.getCursor());
+        throw MalformedNBTException.unterminatedQuote(reader.getCursor());
     }
 
     private NBTString parseUnquotedString(StringReader reader) {
         String value = reader.readUntil(c -> !(Character.isDigit(c) || Character.isAlphabetic(c) || c == '_' || c == '-' || c == '.' || c == '+'));
         if (value.isEmpty())
-            throw new MalformedNBTException("Unable to parse unquoted string. Value is empty.", reader.getCursor());
+            throw MalformedNBTException.emptyUnquotedString(reader.getCursor());
         return new NBTString(value);
     }
 

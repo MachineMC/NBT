@@ -7,10 +7,17 @@ import java.util.function.Predicate;
 public class StringReader implements Cloneable {
 
     private final String input;
+    private final int start, end;
     private int cursor = 0;
 
     public StringReader(String input) {
+        this(input, 0, input.length());
+    }
+
+    private StringReader(String input, int start, int end) {
         this.input = input;
+        this.start = start;
+        this.end = end;
     }
 
     public String readUntil(char terminator) {
@@ -28,8 +35,8 @@ public class StringReader implements Cloneable {
     }
 
     public String finish() {
-        String string = input.substring(cursor);
-        cursor = input.length();
+        String string = input.substring(cursor, end);
+        cursor = end;
         return string;
     }
 
@@ -38,7 +45,7 @@ public class StringReader implements Cloneable {
     }
 
     public boolean canRead(int length) {
-        return cursor + length <= input.length();
+        return cursor + length <= end;
     }
 
     public char peek() {
@@ -46,10 +53,15 @@ public class StringReader implements Cloneable {
     }
 
     public char peek(int offset) {
-        return input.charAt(cursor + offset);
+        int cursor = this.cursor + offset;
+        if (cursor < 0 || cursor >= end)
+            throw MalformedNBTException.endedUnexpectedly(cursor);
+        return input.charAt(cursor);
     }
 
     public char read() {
+        if (cursor < 0 || cursor >= end)
+            throw MalformedNBTException.endedUnexpectedly(cursor);
         return input.charAt(cursor++);
     }
 
@@ -59,22 +71,21 @@ public class StringReader implements Cloneable {
     }
 
     public void skipWhitespace() {
-        while (canRead() && Character.isWhitespace(peek()))
-            read();
+        readUntil(c -> !Character.isWhitespace(c));
     }
 
     public void eat(char expected) {
-        char actual = canRead() ? read() : 0;
+        char actual = read();
         if (actual != expected)
-            throw new MalformedNBTException(String.format("Expected character '%s' but found '%s'", expected, actual), cursor);
+            throw MalformedNBTException.expected(expected, actual, cursor);
     }
 
     public void reset() {
-        cursor = 0;
+        cursor = start;
     }
 
     public int getRemaining() {
-        return input.length() - cursor;
+        return end - cursor;
     }
 
     public String getInput() {
@@ -87,6 +98,10 @@ public class StringReader implements Cloneable {
 
     public void setCursor(int cursor) {
         this.cursor = cursor;
+    }
+
+    public StringReader substring(int start, int end) {
+        return new StringReader(input, start, end);
     }
 
     @Override

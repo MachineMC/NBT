@@ -16,7 +16,11 @@ public final class NBTByteArray implements NBTValue<byte[]>, NBT, NBTArray<Byte>
         this.value = value;
     }
 
-    protected NBTByteArray(Object value) {
+    public NBTByteArray(Byte[] value) {
+        this(unbox(value));
+    }
+
+    NBTByteArray(Object value) {
         this((byte[]) value);
     }
 
@@ -90,6 +94,12 @@ public final class NBTByteArray implements NBTValue<byte[]>, NBT, NBTArray<Byte>
     @Override
     public byte[] value() {
         return value.clone();
+    }
+
+    private static byte[] unbox(Byte... value) {
+        final byte[] array = new byte[value.length];
+        for (int i = 0; i < value.length; i++) array[i] = value[i];
+        return array;
     }
 
 }

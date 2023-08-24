@@ -1,6 +1,7 @@
 package org.machinemc.nbt.exceptions;
 
 public class NBTException extends RuntimeException {
+
     public NBTException() {
         super();
     }
@@ -20,4 +21,5 @@ public class NBTException extends RuntimeException {
     protected NBTException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
+
 }

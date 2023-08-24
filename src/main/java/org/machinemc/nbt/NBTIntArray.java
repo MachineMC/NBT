@@ -16,7 +16,11 @@ public final class NBTIntArray implements NBTValue<int[]>, NBT, NBTArray<Integer
         this.value = value;
     }
 
-    protected NBTIntArray(Object value) {
+    public NBTIntArray(Integer[] value) {
+        this(unbox(value));
+    }
+
+    NBTIntArray(Object value) {
         this((int[]) value);
     }
 
@@ -89,6 +93,12 @@ public final class NBTIntArray implements NBTValue<int[]>, NBT, NBTArray<Integer
     @Override
     public int[] value() {
         return value.clone();
+    }
+
+    private static int[] unbox(Integer... value) {
+        final int[] array = new int[value.length];
+        for (int i = 0; i < value.length; i++) array[i] = value[i];
+        return array;
     }
 
 }

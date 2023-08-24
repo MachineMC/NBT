@@ -16,7 +16,11 @@ public final class NBTLongArray implements NBTValue<long[]>, NBT, NBTArray<Long>
         this.value = value;
     }
 
-    protected NBTLongArray(Object value) {
+    public NBTLongArray(Long[] value) {
+        this(unbox(value));
+    }
+
+    NBTLongArray(Object value) {
         this((long[]) value);
     }
 
@@ -89,6 +93,12 @@ public final class NBTLongArray implements NBTValue<long[]>, NBT, NBTArray<Long>
     @Override
     public long[] value() {
         return value.clone();
+    }
+
+    private static long[] unbox(Long... longs) {
+        final long[] array = new long[longs.length];
+        for (int i = 0; i < longs.length; i++) array[i] = longs[i];
+        return array;
     }
 
 }

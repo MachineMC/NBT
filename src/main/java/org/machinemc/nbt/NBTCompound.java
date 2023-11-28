@@ -1,143 +1,78 @@
 package org.machinemc.nbt;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.machinemc.nbt.exceptions.NBTException;
-
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Consumer;
 
-public non-sealed class NBTCompound implements NBTValue<Map<String, NBT>>, Iterable<String>, Map<String, NBT>, NBT {
+public class NBTCompound implements NBT<Map<String, Object>>, Map<String, NBT<?>>, Iterable<Map.Entry<String, NBT<?>>> {
 
-    private final Map<String, NBT> map = new HashMap<>();
-
-    public NBTCompound(NBTCompound compound) {
-        this();
-        this.map.putAll(compound.map);
-    }
+    private final Map<String, NBT<?>> map;
 
     public NBTCompound() {
-    }
-
-    public NBTCompound(Object value) {
-        this((Map<?, ?>) value);
+        this(new HashMap<>());
     }
 
     public NBTCompound(Map<?, ?> map) {
-        this();
-        if (map instanceof NBTCompound compound) this.map.putAll(compound.map);
-        else for (final Entry<?, ?> entry : map.entrySet()) {
-            this.set(entry.getKey().toString(), entry.getValue());
+        this.map = new HashMap<>();
+        if (map instanceof NBTCompound compound) putAll(compound);
+        else map.forEach((key, value) -> set(key + "", value));
+    }
+
+    public void writeToFile(File file) throws IOException {
+        writeToFile(file, false);
+    }
+
+    public void writeToFile(File file, boolean compress) throws IOException {
+        try (FileOutputStream stream = new FileOutputStream(file)) {
+            writeRoot(stream, compress);
         }
     }
 
-    public NBTCompound(InputStream stream) throws IOException {
-        this();
-        this.read(stream);
+    public void writeRoot(OutputStream stream) throws IOException {
+        writeRoot(stream, false);
     }
 
-    private static UUID fromInts(int[] array) {
-        if (array.length < 4) return null;
-        final long big = 0xFFFFFFFFL;
-        return new UUID((long) array[0] << 32 | (long) array[1] & big, (long) array[2] << 32 | (long) array[3] & big);
+    public void writeRoot(OutputStream stream, boolean compress) throws IOException {
+        new NBTOutputStream(stream, compress).writeRootCompound(this);
     }
 
-    private static int[] toInts(UUID uuid) {
-        final long most = uuid.getMostSignificantBits();
-        final long least = uuid.getLeastSignificantBits();
-        return new int[]{(int) (most >> 32), (int) most, (int) (least >> 32), (int) least};
+    public void writeRoot(OutputStream stream, @Nullable String rootName) throws IOException {
+        writeRoot(stream, rootName, false);
     }
 
-    private static UUID fromLongs(long[] array) {
-        if (array.length < 2) return null;
-        return new UUID(array[0], array[1]);
+    public void writeRoot(OutputStream stream, @Nullable String rootName, boolean compress) throws IOException {
+        new NBTOutputStream(stream, compress).writeRootCompound(this, rootName);
     }
 
-    private static long[] toLongs(UUID uuid) {
-        final long most = uuid.getMostSignificantBits();
-        final long least = uuid.getLeastSignificantBits();
-        return new long[]{most, least};
+    @Override
+    public Tag tag() {
+        return Tag.COMPOUND;
     }
 
-    public <T> void set(String key, T value) {
-        if (value == null) this.remove(key);
-        else if (value instanceof NBT nbt) this.map.put(key, nbt);
-        else if (value instanceof UUID uuid) this.setUUID(key, uuid);
-        else this.map.put(key, NBT.convert(value));
+    @Override
+    public Map<String, Object> revert() {
+        Map<String, Object> map = new HashMap<>();
+        forEach((key, nbt) -> map.put(key, NBT.revert(nbt)));
+        return map;
     }
 
-    public <T> void set(String key, Inserter<T> inserter, T value) {
-        if (value == null) {
-            this.remove(key);
-            return;
-        }
-        final NBTCompound compound = new NBTCompound();
-        inserter.accept(compound, value);
-        this.map.put(key, compound);
+    @Override
+    public void accept(NBTVisitor visitor) {
+        visitor.visit(this);
     }
 
-    public <T> void setList(String key, Inserter<T> inserter, Collection<T> value) {
-        if (value == null) {
-            this.remove(key);
-            return;
-        }
-        final NBTList list = new NBTList();
-        for (T type : value) {
-            final NBTCompound compound = new NBTCompound();
-            inserter.accept(compound, type);
-            list.add(compound);
-        }
-        this.map.put(key, list);
+    @Override
+    public NBTCompound clone() {
+        return new NBTCompound(map);
     }
 
-    @SafeVarargs
-    public final <T> void setList(String key, Inserter<T> inserter, T... value) {
-        if (value == null) {
-            this.remove(key);
-            return;
-        }
-        this.setList(key, inserter, List.of(value));
-    }
-
-    public void read(InputStream stream) throws IOException {
-        final Tag[] tags = Tag.values();
-        for (int i = stream.read(); i != -1; i = stream.read()) {
-            final Tag tag = tags[i];
-            if (tag == Tag.END) return;
-            final String key = NBTString.decodeString(stream);
-            final NBT nbt = switch (tag) {
-                case BYTE -> new NBTByte(stream);
-                case SHORT -> new NBTShort(stream);
-                case INT -> new NBTInt(stream);
-                case LONG -> new NBTLong(stream);
-                case FLOAT -> new NBTFloat(stream);
-                case DOUBLE -> new NBTDouble(stream);
-                case BYTE_ARRAY -> new NBTByteArray(stream);
-                case STRING -> new NBTString(stream);
-                case LIST -> new NBTList(stream);
-                case COMPOUND -> new NBTCompound(stream);
-                case INT_ARRAY -> new NBTIntArray(stream);
-                case LONG_ARRAY -> new NBTLongArray(stream);
-                default -> throw new IOException("Unexpected value: " + tag);
-            };
-            this.put(key, nbt);
-        }
-    }
-
-    public void set(String key, byte... value) {
-        this.map.put(key, new NBTByteArray(value));
-    }
-
-    public void set(String key, int... value) {
-        this.map.put(key, new NBTIntArray(value));
-    }
-
-    public void set(String key, long... value) {
-        this.map.put(key, new NBTLongArray(value));
-    }
-
+    @Override
     public int size() {
         return map.size();
     }
@@ -149,154 +84,144 @@ public non-sealed class NBTCompound implements NBTValue<Map<String, NBT>>, Itera
 
     @Override
     public boolean containsKey(Object key) {
+        if (key == null) return false;
         return map.containsKey(key);
     }
 
     @Override
     public boolean containsValue(Object value) {
-        return map.containsValue(value);
+        if (value == null) return false;
+        return map.containsValue(NBT.convert(value));
+    }
+
+    public boolean containsTag(Tag tag) {
+        if (tag == null || tag == Tag.END) return false;
+        for (NBT<?> value : values()) {
+            if (tag.equals(value.tag())) return true;
+        }
+        return false;
+    }
+
+    public <T> T getValue(String key, T defaultValue) {
+        T value = getValue(key);
+        return value != null ? value : defaultValue;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends NBT> T get(String key, T alternative) {
-        final NBT nbt = map.get(key);
-        if(nbt != null) return (T) nbt;
-        return alternative;
+    public <T> T getValue(String key) {
+        return (T) NBT.revert(get(key));
+    }
+
+    public <T> List<T> getList(String key, Extractor<T> extractor) {
+        if (!(get(key) instanceof NBTList nbtList)) return null;
+        List<T> list = new ArrayList<>(nbtList.size());
+        for (NBT<?> nbt : nbtList) {
+            if (!(nbt instanceof NBTCompound compound)) throw new NBTException("List contains a non-compound element");
+            list.add(extractor.extract(compound));
+        }
+        return list;
+    }
+
+    public <T> T get(String key, Extractor<T> extractor) {
+        return get(key) instanceof NBTCompound compound ? extractor.extract(compound) : null;
+    }
+
+    public <T> T get(String key, Extractor<T> extractor, T defaultValue) {
+        return get(key) instanceof NBTCompound compound ? extractor.extract(compound, defaultValue) : defaultValue;
+    }
+
+    public <T extends NBT<?>> T get(String key, T defaultValue) {
+        T value = get(key);
+        return value != null ? value : defaultValue;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends NBT> T get(String key, Tag tag) {
-        final NBT nbt = map.get(key);
-        if (nbt == null) return null;
-        if (nbt.tag() == tag) return (T) nbt;
-        throw new NBTException("Requested tag is a '" + nbt.tag() + "' not a '" + tag + "'.");
+    public <T extends NBT<?>> T get(String key) {
+        return (T) map.get(key);
     }
 
     @Override
-    public NBT get(Object key) {
+    @Deprecated
+    public NBT<?> get(Object key) {
         return map.get(key);
     }
 
-    public NBT put(String key, Object value) {
-        NBT prev = get(key);
-        set(key, value);
-        return prev;
+    public void set(String key, Object value) {
+        if (value == null) {
+            remove(key);
+            return;
+        }
+        put(key, NBT.convert(value));
+    }
+
+    public <T> void set(String key, Inserter<T> inserter, T value) {
+        if (value == null) {
+            remove(key);
+            return;
+        }
+        NBTCompound compound = new NBTCompound();
+        inserter.insert(compound, value);
+        set(key, compound);
+    }
+
+    @SafeVarargs
+    public final <T> void setList(String key, Inserter<T> inserter, T... values) {
+        setList(key, inserter, values != null ? List.of(values) : null);
+    }
+
+    public <T> void setList(String key, Inserter<T> inserter, Collection<T> values) {
+        if (values == null) {
+            remove(key);
+            return;
+        }
+        NBTList list = new NBTList();
+        for (T value : values) {
+            NBTCompound compound = new NBTCompound();
+            inserter.insert(compound, value);
+            list.add(compound);
+        }
+        set(key, list);
     }
 
     @Override
-    public NBT put(String key, NBT value) {
-        return put(key, (Object) value);
+    public @Nullable NBT<?> put(String key, NBT<?> value) {
+        check(key, value);
+        return map.put(key, value);
     }
 
     @Override
-    public NBT remove(Object key) {
+    public NBT<?> remove(Object key) {
         return map.remove(key);
     }
 
     @Override
-    public void putAll(Map<? extends String, ? extends NBT> map) {
-        this.map.putAll(map);
+    public void putAll(@NotNull Map<? extends String, ? extends NBT<?>> m) {
+        map.forEach(this::put);
     }
 
     @Override
     public void clear() {
-        this.map.clear();
+        map.clear();
     }
 
     @Override
-    public Set<String> keySet() {
+    public @NotNull Set<String> keySet() {
         return map.keySet();
     }
 
     @Override
-    public Collection<NBT> values() {
+    public @NotNull Collection<NBT<?>> values() {
         return map.values();
     }
 
     @Override
-    public Set<Entry<String, NBT>> entrySet() {
+    public @NotNull Set<Entry<String, NBT<?>>> entrySet() {
         return map.entrySet();
     }
 
-    public <T> T getValue(String key) {
-        final NBT nbt = map.get(key);
-        if (nbt == null) return null;
-        return nbt.value();
-    }
-
-    public <T> T getValue(String key, T alternative) {
-        final NBT nbt = map.get(key);
-        if(nbt != null) return nbt.value();
-        return alternative;
-    }
-
-    public <T> T getValue(String key, Class<T> source) {
-        final NBT nbt = map.get(key);
-        if(nbt == null) return null;
-        if(source.isAssignableFrom(nbt.value().getClass())) return nbt.value();
-        throw new NBTException("Requested class is a '" + nbt.value().getClass() + "' not a '" + source + "'.");
-    }
-
-    public <T> T get(String key, Extractor<T> extractor) {
-        if (map.get(key) instanceof NBTCompound compound) return extractor.apply(compound);
-        return null;
-    }
-
-    public <T> T get(String key, Extractor<T> extractor, T alternative) {
-        if (map.get(key) instanceof NBTCompound compound) return extractor.apply(compound, alternative);
-        return alternative;
-    }
-
-    public NBTList getList(String key) {
-        final NBT nbt = map.get(key);
-        if (nbt instanceof NBTList list) return list;
-        return new NBTList(nbt);
-    }
-
-    public <T> List<T> getList(String key, Extractor<T> extractor) {
-        if (!(map.get(key) instanceof NBTList list)) return null;
-        final List<T> converted = new ArrayList<>(list.size());
-        for (NBT nbt : list) {
-            if (!(nbt instanceof NBTCompound compound)) throw new NBTException("List contains a non-compound element.");
-            converted.add(extractor.apply(compound));
-        }
-        return converted;
-    }
-
-    public <T> List<T> getList(String key, Extractor<T> extractor, List<T> alternative) {
-        try {
-            final List<T> list = this.getList(key, extractor);
-            if (list != null) return list;
-            return alternative;
-        } catch (NBTException ex) {
-            return alternative;
-        }
-    }
-
     @Override
-    public Iterator<String> iterator() {
-        return map.keySet().iterator();
-    }
-
-    @Override
-    public void forEach(Consumer<? super String> action) {
-        this.map.keySet().forEach(action);
-    }
-
-    @Override
-    public Spliterator<String> spliterator() {
-        return map.keySet().spliterator();
-    }
-
-    @Override
-    public Map<String, NBT> value() {
-        return Collections.unmodifiableMap(new HashMap<>(this));
-    }
-
-    public Map<String, ?> revert() {
-        HashMap<String, Object> hashMap = new HashMap<>(map.size());
-        map.forEach((key, nbt) -> hashMap.put(key, NBT.revert(nbt)));
-        return hashMap;
+    public @NotNull Iterator<Entry<String, NBT<?>>> iterator() {
+        return map.entrySet().iterator();
     }
 
     @Override
@@ -304,109 +229,9 @@ public non-sealed class NBTCompound implements NBTValue<Map<String, NBT>>, Itera
         return new NBTStringVisitor().visitNBT(this);
     }
 
-    public void read(File file) throws IOException {
-        try (final InputStream stream = new FileInputStream(file)) {
-            this.readAll(stream);
-        }
-    }
-
-    public void readAll(InputStream stream) {
-        try {
-            final int tag = stream.read();
-            assert tag == this.tag().ordinal(); // we are discarding this anyway
-            NBTString.decodeString(stream); // ignore the empty base tag
-            this.read(stream);
-        } catch (IOException ex) {
-            throw new NBTException(ex);
-        }
-    }
-
-    public void write(File file) throws IOException {
-        try (final OutputStream stream = new FileOutputStream(file)) {
-            this.writeAll(stream);
-        }
-    }
-
-    public void writeAll(OutputStream stream) {
-        try {
-            stream.write(this.tag().ordinal());
-            NBTString.encodeString(stream, "");
-            this.write(stream);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
     @Override
-    public void write(OutputStream stream) throws IOException {
-        for (final Entry<String, NBT> entry : map.entrySet()) {
-            stream.write(entry.getValue().tag().ordinal());
-            NBTString.encodeString(stream, entry.getKey());
-            entry.getValue().write(stream);
-        }
-        stream.write(Tag.END.ordinal());
-    }
-
-    @Override
-    public Tag tag() {
-        return Tag.COMPOUND;
-    }
-
-    @Override
-    public void accept(NBTVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public boolean contains(String key, NBT.Tag tag) {
-        if (!this.containsKey(key)) return false;
-        return map.get(key).tag() == tag;
-    }
-
-    public void setUUID(String key, UUID value) {
-        if (this.contains(key + "Most", Tag.LONG) && this.contains(key + "Least", Tag.LONG)) {
-            this.map.remove(key + "Most");
-            this.map.remove(key + "Least");
-        }
-        this.map.put(key, new NBTIntArray(toInts(value)));
-    }
-
-    public UUID getUUID(String key, UUID alternative) {
-        final UUID found = this.getUUID(key);
-        if (found == null) return alternative;
-        return found;
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    public UUID getUUID(String key) {
-        if (this.contains(key, Tag.INT_ARRAY)) { // I would love to know why we use four ints rather than two longs
-            final int[] value = this.getValue(key);
-            return fromInts(value);
-        } else if (this.contains(key + "Most", Tag.LONG) && this.contains(key + "Least", Tag.LONG)) {
-            return new UUID(this.getValue(key + "Most"), this.getValue(key + "Least"));
-        } else if (this.contains(key, Tag.LONG_ARRAY)) { // I would love to know why we use four ints rather than two longs
-            final long[] value = this.getValue(key);
-            return fromLongs(value);
-        } else return null;
-    }
-
-    public boolean hasUUID(String key) {
-        if (this.contains(key + "Most", Tag.LONG) && this.contains(key + "Least", Tag.LONG)) return true;
-        if (!this.containsKey(key)) return false;
-        final NBT nbt = map.get(key);
-        return (nbt.tag() == Tag.INT_ARRAY && nbt.value() instanceof int[] ints && ints.length == 4)
-                || (nbt.tag() == Tag.LONG_ARRAY && nbt.value() instanceof long[] longs && longs.length == 2);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
-        NBTCompound strings = (NBTCompound) o;
-
-        return map.equals(strings.map);
+    public boolean equals(Object obj) {
+        return this == obj || obj instanceof NBTCompound other && Objects.equals(map, other.map);
     }
 
     @Override
@@ -414,12 +239,21 @@ public non-sealed class NBTCompound implements NBTValue<Map<String, NBT>>, Itera
         return map.hashCode();
     }
 
-    @Override
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public NBTCompound clone() {
-        Map<String, NBT> clone = new HashMap<>(map.size());
-        map.forEach((key, nbt) -> clone.put(key, nbt.clone()));
-        return new NBTCompound(clone);
+    private void check(Object key, Object value) {
+        if (key == null) {
+            throw new NBTException("Compounds cannot have null keys");
+        } else if (value == null) {
+            throw new NBTException("Compounds cannot have null values");
+        } else if (value instanceof NBT<?> nbt && nbt.tag() == Tag.END) {
+            throw new NBTException(Tag.END.getTypeName() + " cannot be used as a value");
+        }
+    }
+
+    @SafeVarargs
+    public static NBTCompound ofEntries(Entry<String, NBT<?>>... entries) {
+        NBTCompound nbtCompound = new NBTCompound();
+        for (Entry<String, NBT<?>> entry : entries) nbtCompound.put(entry.getKey(), entry.getValue());
+        return nbtCompound;
     }
 
 }

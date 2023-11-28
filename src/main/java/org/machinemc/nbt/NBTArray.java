@@ -1,46 +1,40 @@
 package org.machinemc.nbt;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Iterator;
 
-public interface NBTArray<T> extends Iterable<T> {
+public interface NBTArray<T, E> extends NBT<T>, Iterable<E> {
+
+    int size();
+
+    E get(int index);
+
+    void set(int index, @NotNull E element);
+
+    Tag getElementType();
 
     @Override
-    default Iterator<T> iterator() {
-        return new ArrayIterator<>(this.toArray());
-    }
-
-    T[] toArray();
-
-    default int size() {
-        return this.toArray().length;
-    }
-
-}
-
-class ArrayIterator<T> implements Iterator<T> {
-
-    private final T[] array;
-    private int index = 0;
-
-    @SafeVarargs
-    public ArrayIterator(T... array) {
-        this.array = array;
-    }
+    NBTArray<T, E> clone();
 
     @Override
-    public boolean hasNext() {
-        return index < array.length;
-    }
+    default @NotNull Iterator<E> iterator() {
+        return new Iterator<E>() {
 
-    @Override
-    public T next() {
-        return array[index++];
-    }
+            private final int size = size();
+            private int index = 0;
 
-    @Override
-    @Deprecated
-    public void remove() {
-        this.array[index] = null;
+            @Override
+            public boolean hasNext() {
+                return index < size;
+            }
+
+            @Override
+            public E next() {
+                return get(index++);
+            }
+
+        };
     }
 
 }

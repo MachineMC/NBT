@@ -3,29 +3,16 @@ package org.machinemc.nbt;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+public class NBTFloat implements NBT<Float> {
 
-public record NBTFloat(Float value) implements NBTValue<Float>, NBT {
+    private final float value;
 
-    public NBTFloat(Object value) {
-        this(((Number) value).floatValue());
+    public NBTFloat(Number number) {
+        this(number.floatValue());
     }
 
-    public NBTFloat(InputStream stream) throws IOException {
-        this(Float.intBitsToFloat(NBTInt.decodeInt(stream)));
-    }
-
-    @Override
-    public String toString() {
-        return new NBTStringVisitor().visitNBT(this);
-    }
-
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        final int value = Float.floatToIntBits(this.value);
-        NBTInt.encodeInt(stream, value);
+    public NBTFloat(float value) {
+        this.value = value;
     }
 
     @Override
@@ -34,34 +21,33 @@ public record NBTFloat(Float value) implements NBTValue<Float>, NBT {
     }
 
     @Override
+    public Float revert() {
+        return value;
+    }
+
+    @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+    public NBTFloat clone() {
+        return new NBTFloat(value);
+    }
 
-        NBTFloat nbtFloat = (NBTFloat) o;
+    @Override
+    public String toString() {
+        return new NBTStringVisitor().visitNBT(this);
+    }
 
-        return value.equals(nbtFloat.value);
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || obj instanceof NBTFloat other && value == other.value;
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
-    }
-
-    @Override
-    public NBTFloat clone() {
-        try {
-            return (NBTFloat) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        return Float.hashCode(value);
     }
 
 }

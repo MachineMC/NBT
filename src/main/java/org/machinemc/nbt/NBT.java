@@ -1,130 +1,120 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-/**
- * Represents NBT element.
- */
-public interface NBT extends Cloneable {
+public interface NBT<T> {
 
-    /**
-     * Converts object to its NBT counterpart.
-     * @param value value to convert
-     * @return NBT element
-     */
-    static NBT convert(Object value) {
-        if (value == null) return NBTEnd.INSTANCE;
-        if (value instanceof NBT nbt) return nbt;
-        if (value instanceof Map<?, ?> map) return new NBTCompound(map);
-        if (value instanceof List<?> list) return new NBTList(list);
-        if (value instanceof Boolean boo) return new NBTByte(boo);
-        for (Tag tag : Tag.values()) for (Class<?> type : tag.types) if (type.isInstance(value)) return tag.make(value);
-        return NBTEnd.INSTANCE;
-    }
-
-    /**
-     * Reverts NBT element to its original value.
-     * @param nbt NBT element
-     * @return object
-     */
-    static Object revert(NBT nbt) {
-        return nbt.tag().revert(nbt);
-    }
-
-    /**
-     * Returns original object backing the NBT element.
-     * @return value
-     * @param <T> NBT value
-     */
-    <T> T value();
-
-    /**
-     * Writes the NBT element to a stream.
-     * @param stream output stream
-     */
-    default void write(OutputStream stream) throws IOException {
-    }
-
-    /**
-     * Checks whether provided object equals this element or its value.
-     * @param object object
-     * @return whether the object is equal to this element or value
-     */
-    boolean softEquals(Object object);
-
-    /**
-     * @return type of the element
-     */
     Tag tag();
 
-    /**
-     * Visits the element using NBT visitor
-     * @param visitor visitor
-     */
+    T revert();
+
     void accept(NBTVisitor visitor);
 
-    /**
-     * @return deep clone of this NBT
-     */
-    NBT clone();
+    NBT<T> clone();
 
-    /**
-     * Represents type of NBT element
-     */
+    default void write(OutputStream stream) throws IOException {
+        write(stream, false);
+    }
+
+    default void write(OutputStream stream, boolean compress) throws IOException {
+        new NBTOutputStream(stream, compress).writeNBT(this);
+    }
+
+    default boolean softEquals(Object object) {
+        if (this == object) return true;
+        if (equals(object)) return true;
+        return !(object instanceof NBT<?>) && Objects.equals(revert(), object);
+    }
+
+    static NBT<?> convert(Object object) {
+        if (object instanceof NBT<?> nbt) return nbt;
+        if (object == null) return NBTEnd.INSTANCE;
+        if (object instanceof Boolean bool) return new NBTByte(bool);
+        for (Tag tag : Tag.values()) {
+            NBT<?> nbt = tag.make(object);
+            if (nbt != null) return nbt;
+        }
+        return null;
+    }
+
+    static <T> T revert(NBT<T> nbt) {
+        return nbt != null ? nbt.revert() : null;
+    }
+
     enum Tag {
 
-        END,
-        BYTE(NBTByte::new, NBT::value, Byte.class),
-        SHORT(NBTShort::new, NBT::value, Short.class),
-        INT(NBTInt::new, NBT::value, Integer.class),
-        LONG(NBTLong::new, NBT::value, Long.class),
-        FLOAT(NBTFloat::new, NBT::value, Float.class),
-        DOUBLE(NBTDouble::new, NBT::value, Double.class),
-        BYTE_ARRAY(NBTByteArray::new, (nbt -> ((byte[]) nbt.value()).clone()), byte[].class),
-        STRING(NBTString::new, NBT::value, String.class),
-        LIST(NBTList::new, (nbt -> ((NBTList) nbt).revert()), List.class),
-        COMPOUND(NBTCompound::new, (nbt -> ((NBTCompound) nbt).revert()), Map.class),
-        INT_ARRAY(NBTIntArray::new, (nbt -> ((int[]) nbt.value()).clone()), int[].class),
-        LONG_ARRAY(NBTLongArray::new, (nbt -> ((long[]) nbt.value()).clone()), long[].class);
+        END(Void.class, object -> NBTEnd.INSTANCE),
+        BYTE(Byte.class, NBTByte::new),
+        SHORT(Short.class, NBTShort::new),
+        INT(Integer.class, NBTInt::new),
+        LONG(Long.class, NBTLong::new),
+        FLOAT(Float.class, NBTFloat::new),
+        DOUBLE(Double.class, NBTDouble::new),
+        BYTE_ARRAY(byte[].class, NBTByteArray::new),
+        STRING(String.class, NBTString::new),
+        LIST(List.class, NBTList::new),
+        COMPOUND(Map.class, NBTCompound::new),
+        INT_ARRAY(int[].class, NBTIntArray::new),
+        LONG_ARRAY(long[].class, NBTLongArray::new);
 
-        public final Class<?>[] types;
-        public final Function<Object, NBT> make;
-        public final Function<NBT, Object> revert;
+        private final Class<?> type;
+        private final Function<Object, NBT<?>> make;
 
-        Tag(Function<Object, NBT> make, Function<NBT, Object> revert, Class<?>... types) {
-            this.make = make;
-            this.revert = revert;
-            this.types = types;
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        <T> Tag(Class<T> type, Function<T, NBT<? extends T>> make) {
+            this.type = type;
+            this.make = (Function) make;
         }
 
-        Tag() {
-            this.types = new Class[0];
-            this.make = NBTEnd::getInstance;
-            this.revert = nbt -> null;
+        public int getID() {
+            return ordinal();
         }
 
-        /**
-         * Creates NBT element of given type using given value.
-         * @param value value
-         * @return NBT element
-         */
-        public NBT make(Object value) {
-            return make.apply(value);
+        public String getTypeName() {
+            return "Tag_" + name();
         }
 
-        /**
-         * Returns backing value of NBT element.
-         * @param nbt NBT element
-         * @return value
-         */
-        public Object revert(NBT nbt) {
-            return revert.apply(nbt);
+        public NBT<?> make(Object object) {
+            if (!type.isInstance(object)) return null;
+            return make.apply(object);
+        }
+
+    }
+
+    @FunctionalInterface
+    interface Extractor<T> extends Function<NBTCompound, T> {
+
+        T extract(NBTCompound compound);
+
+        @Override
+        default T apply(NBTCompound compound) {
+            return extract(compound);
+        }
+
+        default T extract(NBTCompound compound, T alternative) {
+            T value = extract(compound);
+            return value != null ? value : alternative;
+        }
+
+    }
+
+    @FunctionalInterface
+    interface Inserter<T> extends BiConsumer<NBTCompound, T> {
+
+        void insert(NBTCompound compound, T t);
+
+        @Override
+        default void accept(NBTCompound compound, T t) {
+            insert(compound, t);
         }
 
     }

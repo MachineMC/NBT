@@ -1,7 +1,7 @@
 package org.machinemc.nbt;
 
-import org.machinemc.nbt.parser.NBTParser;
 import org.junit.Test;
+import org.machinemc.nbt.parser.NBTParser;
 
 import java.util.List;
 import java.util.Map;
@@ -33,7 +33,7 @@ public class NBTParserTest {
         final NBTCompound parsed = new NBTParser(compound.toString()).parse();
         assert parsed.get("list") != null;
         List<Object> parsedList = ((List<?>) parsed.get("list")).stream()
-                .map(nbt -> ((NBT) nbt).value())
+                .map(nbt -> ((NBT<?>) nbt).revert())
                 .collect(Collectors.toList());
         assert parsedList.get(0).equals(10);
         assert parsedList.get(1).equals(3);
@@ -50,7 +50,7 @@ public class NBTParserTest {
 
         assert compound.size() == parsed.size();
 
-        for (Map.Entry<String, NBT> entry : compound.entrySet()) {
+        for (Map.Entry<String, NBT<?>> entry : compound) {
             assert parsed.get(entry.getKey()) != null;
             assert NBT.revert(entry.getValue()).equals(parsed.getValue(entry.getKey()));
         }
@@ -58,9 +58,9 @@ public class NBTParserTest {
 
     @Test
     public void arrayTypes() {
-        NBTLongArray longArray = new NBTLongArray(new long[]{1, 2, 3, 4, 5});
-        NBTByteArray byteArray = new NBTByteArray(new byte[]{2, 3, 4, 5, 6});
-        NBTIntArray intArray = new NBTIntArray(new int[]{3, 4, 5, 6, 7});
+        NBTLongArray longArray = new NBTLongArray(1, 2, 3, 4, 5);
+        NBTByteArray byteArray = new NBTByteArray(2, 3, 4, 5, 6);
+        NBTIntArray intArray = new NBTIntArray(3, 4, 5, 6, 7);
 
         final NBTCompound compound = new NBTCompound(Map.of(
                 "long", longArray,
@@ -74,17 +74,17 @@ public class NBTParserTest {
         byte[] parsedByte = parsed.getValue("byte");
         int[] parsedInt = parsed.getValue("int");
 
-        assert parsedLong.length == longArray.value().length;
+        assert parsedLong.length == longArray.revert().length;
         for (int i = 0; i < parsedLong.length; i++)
-            assert parsedLong[i] == longArray.value()[i];
+            assert parsedLong[i] == longArray.revert()[i];
 
-        assert parsedByte.length == byteArray.value().length;
+        assert parsedByte.length == byteArray.revert().length;
         for (int i = 0; i < parsedLong.length; i++)
-            assert parsedByte[i] == byteArray.value()[i];
+            assert parsedByte[i] == byteArray.revert()[i];
 
-        assert parsedInt.length == intArray.value().length;
+        assert parsedInt.length == intArray.revert().length;
         for (int i = 0; i < parsedLong.length; i++)
-            assert parsedInt[i] == intArray.value()[i];
+            assert parsedInt[i] == intArray.revert()[i];
 
     }
 

@@ -44,8 +44,8 @@ public class NBTParser {
     private String key() {
         reader.skipWhitespace();
         if (reader.peek() == '"' || reader.peek() == '\'')
-            return StringParser.quoted().parse(reader).value();
-        return StringParser.unquoted().parse(reader).value();
+            return StringParser.quoted().parse(reader).revert();
+        return StringParser.unquoted().parse(reader).revert();
     }
 
     public StringReader getReader() {

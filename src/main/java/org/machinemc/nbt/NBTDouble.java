@@ -3,29 +3,16 @@ package org.machinemc.nbt;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+public class NBTDouble implements NBT<Double> {
 
-public record NBTDouble(Double value) implements NBTValue<Double>, NBT {
+    private final double value;
 
-    public NBTDouble(Object value) {
-        this(((Number) value).doubleValue());
+    public NBTDouble(Number number) {
+        this(number.doubleValue());
     }
 
-    public NBTDouble(InputStream stream) throws IOException {
-        this(Double.longBitsToDouble(NBTLong.decodeLong(stream)));
-    }
-
-    @Override
-    public String toString() {
-        return new NBTStringVisitor().visitNBT(this);
-    }
-
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        final long value = Double.doubleToLongBits(this.value);
-        NBTLong.encodeLong(stream, value);
+    public NBTDouble(double value) {
+        this.value = value;
     }
 
     @Override
@@ -34,34 +21,33 @@ public record NBTDouble(Double value) implements NBTValue<Double>, NBT {
     }
 
     @Override
+    public Double revert() {
+        return value;
+    }
+
+    @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+    public NBTDouble clone() {
+        return new NBTDouble(value);
+    }
 
-        NBTDouble nbtDouble = (NBTDouble) o;
+    @Override
+    public String toString() {
+        return new NBTStringVisitor().visitNBT(this);
+    }
 
-        return value.equals(nbtDouble.value);
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || obj instanceof NBTDouble other && value == other.value;
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
-    }
-
-    @Override
-    public NBTDouble clone() {
-        try {
-            return (NBTDouble) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        return Double.hashCode(value);
     }
 
 }

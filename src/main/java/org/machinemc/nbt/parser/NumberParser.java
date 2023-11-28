@@ -3,10 +3,10 @@ package org.machinemc.nbt.parser;
 import org.machinemc.nbt.*;
 import org.machinemc.nbt.exceptions.MalformedNBTException;
 
-class NumberParser implements NBTElementParser<NBT> {
+class NumberParser implements NBTElementParser<NBT<? extends Number>> {
 
     @Override
-    public NBT parse(StringReader reader) throws MalformedNBTException {
+    public NBT<? extends Number> parse(StringReader reader) throws MalformedNBTException {
         char c;
         StringBuilder result = new StringBuilder();
         int start = reader.getCursor(), decimals = 0;
@@ -20,7 +20,7 @@ class NumberParser implements NBTElementParser<NBT> {
         if (decimals > 1)
             throw MalformedNBTException.multipleDecimaledNumber(numberString, start);
 
-        NBT nbt = switch (Character.toLowerCase(reader.peek())) {
+        NBT<? extends Number> nbt = switch (Character.toLowerCase(reader.peek())) {
             case 'b' -> new NBTByte(Byte.parseByte(numberString));
             case 's' -> new NBTShort(Short.parseShort(numberString));
             case 'l' -> new NBTLong(Long.parseLong(numberString));

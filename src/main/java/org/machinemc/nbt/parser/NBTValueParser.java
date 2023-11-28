@@ -4,13 +4,13 @@ import org.machinemc.nbt.NBT;
 import org.machinemc.nbt.NBTByte;
 import org.machinemc.nbt.exceptions.MalformedNBTException;
 
-class NBTValueParser implements NBTElementParser<NBT> {
+class NBTValueParser implements NBTElementParser<NBT<?>> {
 
     @Override
-    public NBT parse(StringReader reader) throws MalformedNBTException {
+    public NBT<?> parse(StringReader reader) throws MalformedNBTException {
         reader.skipWhitespace();
         char current = reader.peek();
-        NBT nbt = null;
+        NBT<?> nbt = null;
         switch (current) {
             case '{' -> {
                 int start = reader.getCursor(), end = findClosingBrace(start, reader.getInput()) + 1;
@@ -40,11 +40,11 @@ class NBTValueParser implements NBTElementParser<NBT> {
 
         if (nbt == null) {
             nbt = StringParser.unquoted().parse(reader);
-            switch ((String) nbt.value()) {
+            switch ((String) nbt.revert()) {
                 case "true":
-                    return new NBTByte(1);
+                    return new NBTByte(true);
                 case "false":
-                    return new NBTByte(0);
+                    return new NBTByte(false);
             }
         }
 

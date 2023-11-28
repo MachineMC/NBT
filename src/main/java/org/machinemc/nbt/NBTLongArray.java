@@ -1,44 +1,26 @@
 package org.machinemc.nbt;
 
+import org.jetbrains.annotations.NotNull;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Objects;
 
-public final class NBTLongArray implements NBTValue<long[]>, NBT, NBTArray<Long> {
+public class NBTLongArray implements NBTArray<long[], Long> {
 
-    private final long[] value;
+    private final long[] longs;
 
-    public NBTLongArray(long[] value) {
-        this.value = value;
+    public NBTLongArray(Long[] longs) {
+        this(unbox(longs));
     }
 
-    protected NBTLongArray(Object value) {
-        this((long[]) value);
+    public NBTLongArray(int size) {
+        this(new Long[size]);
     }
 
-    public NBTLongArray(InputStream stream) throws IOException {
-        this(decodeLongs(stream));
-    }
-
-    static long[] decodeLongs(InputStream stream) throws IOException {
-        final long[] longs = new long[NBTInt.decodeInt(stream)];
-        for (int i = 0; i < longs.length; i++) longs[i] = NBTLong.decodeLong(stream);
-        return longs;
-    }
-
-    @Override
-    public String toString() {
-        return new NBTStringVisitor().visitNBT(this);
-    }
-
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        NBTInt.encodeInt(stream, value.length);
-        for (long j : value) NBTLong.encodeLong(stream, j);
+    public NBTLongArray(long... longs) {
+        this.longs = longs;
     }
 
     @Override
@@ -47,48 +29,59 @@ public final class NBTLongArray implements NBTValue<long[]>, NBT, NBTArray<Long>
     }
 
     @Override
+    public long[] revert() {
+        return longs;
+    }
+
+    @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public Long[] toArray() {
-        final Long[] array = new Long[value.length];
-        for (int i = 0; i < value.length; i++) array[i] = value[i];
-        return array;
+    public NBTLongArray clone() {
+        return new NBTLongArray(longs.clone());
     }
 
     @Override
     public int size() {
-        return value.length;
+        return longs.length;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+    public Long get(int index) {
+        return longs[index];
+    }
 
-        NBTLongArray nbtLongArray = (NBTLongArray) o;
+    @Override
+    public void set(int index, @NotNull Long element) {
+        longs[index] = Objects.requireNonNull(element, "element");
+    }
 
-        return Arrays.equals(value, nbtLongArray.value);
+    @Override
+    public Tag getElementType() {
+        return Tag.LONG;
+    }
+
+    @Override
+    public String toString() {
+        return new NBTStringVisitor().visitNBT(this);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this || obj instanceof NBTLongArray other && Arrays.equals(longs, other.longs);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(value);
+        return Arrays.hashCode(longs);
     }
 
-    @Override
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public NBTLongArray clone() {
-        return new NBTLongArray(value.clone());
-    }
-
-    @Override
-    public long[] value() {
-        return value.clone();
+    private static long[] unbox(Long[] value) {
+        long[] primitive = new long[value.length];
+        for (int i = 0; i < value.length; i++) primitive[i] = value[i];
+        return primitive;
     }
 
 }

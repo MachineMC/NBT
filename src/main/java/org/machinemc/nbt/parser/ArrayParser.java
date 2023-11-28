@@ -1,18 +1,15 @@
 package org.machinemc.nbt.parser;
 
-import org.machinemc.nbt.NBT;
-import org.machinemc.nbt.NBTByteArray;
-import org.machinemc.nbt.NBTIntArray;
-import org.machinemc.nbt.NBTLongArray;
+import org.machinemc.nbt.*;
 import org.machinemc.nbt.exceptions.MalformedNBTException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class ArrayParser implements NBTElementParser<NBT> {
+class ArrayParser implements NBTElementParser<NBTArray<?, ?>> {
 
     @Override
-    public NBT parse(StringReader reader) throws MalformedNBTException {
+    public NBTArray<?, ?> parse(StringReader reader) throws MalformedNBTException {
         reader.eat('[');
         List<Number> elements = new ArrayList<>();
         char dataClass = reader.read();
@@ -29,7 +26,7 @@ class ArrayParser implements NBTElementParser<NBT> {
             if (reader.peek() == ']')
                 break;
             int start = reader.getCursor();
-            Number value = new NumberParser().parse(reader).value();
+            Number value = new NumberParser().parse(reader).revert();
 
             if (!arrayClass.isInstance(value))
                 throw MalformedNBTException.valueDoesNotMatchArrayType(arrayClass, start);

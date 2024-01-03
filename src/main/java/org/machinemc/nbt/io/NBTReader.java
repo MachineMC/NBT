@@ -14,9 +14,9 @@ public final class NBTReader {
         return readFile(file, false);
     }
 
-    public static NBTCompound readFile(File file, boolean compress) throws IOException {
+    public static NBTCompound readFile(File file, boolean hasRootKey) throws IOException {
         try (FileInputStream stream = new FileInputStream(file)) {
-            return readRootCompound(stream, compress);
+            return readRootCompound(stream, hasRootKey);
         }
     }
 

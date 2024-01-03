@@ -107,9 +107,8 @@ public class NBTCompound implements NBT<Map<String, Object>>, Map<String, NBT<?>
         return value != null ? value : defaultValue;
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T getValue(String key) {
-        return (T) NBT.revert(get(key));
+        return NBT.revert(get(key));
     }
 
     public <T> List<T> getList(String key, Extractor<T> extractor) {

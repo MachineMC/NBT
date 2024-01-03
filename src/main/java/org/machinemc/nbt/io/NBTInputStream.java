@@ -35,21 +35,7 @@ public class NBTInputStream extends InputStream {
     }
 
     public NBT<?> readNBT(NBT.Tag tag) throws IOException {
-        return switch (tag) {
-            case BYTE -> readByte();
-            case SHORT -> readShort();
-            case INT -> readInt();
-            case LONG -> readLong();
-            case FLOAT -> readFloat();
-            case DOUBLE -> readDouble();
-            case STRING -> readString();
-            case BYTE_ARRAY -> readByteArray();
-            case INT_ARRAY -> readIntArray();
-            case LONG_ARRAY -> readLongArray();
-            case LIST -> readList();
-            case COMPOUND -> readCompound();
-            default -> throw new IllegalStateException("Unexpected value: " + tag);
-        };
+        return tag.read(this);
     }
 
     public NBTByte readByte() throws IOException {

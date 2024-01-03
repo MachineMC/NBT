@@ -1,9 +1,11 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTInputStream;
 import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +24,12 @@ public interface NBT<T> {
     NBT<T> clone();
 
     default void write(OutputStream stream) throws IOException {
-        write(stream, false);
+        write(stream instanceof NBTOutputStream ? (NBTOutputStream) stream : new NBTOutputStream(stream, false));
     }
 
-    default void write(OutputStream stream, boolean compress) throws IOException {
-        new NBTOutputStream(stream, compress).writeNBT(this);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default void write(NBTOutputStream stream) throws IOException {
+        ((Tag.Writer) tag().writer).write(stream, this.revert());
     }
 
     default boolean softEquals(Object object) {
@@ -52,27 +55,33 @@ public interface NBT<T> {
 
     enum Tag {
 
-        END(Void.class, object -> NBTEnd.INSTANCE),
-        BYTE(Byte.class, NBTByte::new),
-        SHORT(Short.class, NBTShort::new),
-        INT(Integer.class, NBTInt::new),
-        LONG(Long.class, NBTLong::new),
-        FLOAT(Float.class, NBTFloat::new),
-        DOUBLE(Double.class, NBTDouble::new),
-        BYTE_ARRAY(byte[].class, NBTByteArray::new),
-        STRING(String.class, NBTString::new),
-        LIST(List.class, NBTList::new),
-        COMPOUND(Map.class, NBTCompound::new),
-        INT_ARRAY(int[].class, NBTIntArray::new),
-        LONG_ARRAY(long[].class, NBTLongArray::new);
+        END(Void.class, object -> NBTEnd.INSTANCE, (stream, unused) -> stream.writeEnd(), stream -> {
+            throw new UnsupportedOperationException("Cannot read Tag_END NBT");
+        }),
+        BYTE(Byte.class, NBTByte::new, NBTOutputStream::writeByte, NBTInputStream::readByte),
+        SHORT(Short.class, NBTShort::new, NBTOutputStream::writeShort, NBTInputStream::readShort),
+        INT(Integer.class, NBTInt::new, NBTOutputStream::writeInt, NBTInputStream::readInt),
+        LONG(Long.class, NBTLong::new, NBTOutputStream::writeLong, NBTInputStream::readLong),
+        FLOAT(Float.class, NBTFloat::new, NBTOutputStream::writeFloat, NBTInputStream::readFloat),
+        DOUBLE(Double.class, NBTDouble::new, NBTOutputStream::writeDouble, NBTInputStream::readDouble),
+        BYTE_ARRAY(byte[].class, NBTByteArray::new, NBTOutputStream::writeByteArray, NBTInputStream::readByteArray),
+        STRING(String.class, NBTString::new, NBTOutputStream::writeString, NBTInputStream::readString),
+        LIST(List.class, NBTList::new, NBTOutputStream::writeList, NBTInputStream::readList),
+        COMPOUND(Map.class, NBTCompound::new, NBTOutputStream::writeCompound, NBTInputStream::readCompound),
+        INT_ARRAY(int[].class, NBTIntArray::new, NBTOutputStream::writeIntArray, NBTInputStream::readIntArray),
+        LONG_ARRAY(long[].class, NBTLongArray::new, NBTOutputStream::writeLongArray, NBTInputStream::readLongArray);
 
         private final Class<?> type;
         private final Function<Object, NBT<?>> make;
+        private final Writer<?> writer;
+        private final Reader reader;
 
         @SuppressWarnings({"unchecked", "rawtypes"})
-        <T> Tag(Class<T> type, Function<T, NBT<? extends T>> make) {
+        <T> Tag(Class<T> type, Function<T, NBT<? extends T>> make, Writer<T> writer, Reader reader) {
             this.type = type;
             this.make = (Function) make;
+            this.writer = writer;
+            this.reader = reader;
         }
 
         public int getID() {
@@ -88,6 +97,21 @@ public interface NBT<T> {
             return make.apply(object);
         }
 
+        public NBT<?> read(InputStream stream) throws IOException {
+            NBTInputStream nbtStream = stream instanceof NBTInputStream ? (NBTInputStream) stream : new NBTInputStream(stream);
+            return reader.read(nbtStream);
+        }
+
+        @FunctionalInterface
+        private interface Writer<T> {
+            void write(NBTOutputStream stream, T t) throws IOException;
+        }
+
+        @FunctionalInterface
+        private interface Reader {
+            NBT<?> read(NBTInputStream stream) throws IOException;
+        }
+        
     }
 
     @FunctionalInterface

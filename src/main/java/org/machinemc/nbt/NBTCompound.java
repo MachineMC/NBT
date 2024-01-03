@@ -30,16 +30,16 @@ public class NBTCompound implements NBT<Map<String, Object>>, Map<String, NBT<?>
 
     public void writeToFile(File file, boolean compress) throws IOException {
         try (FileOutputStream stream = new FileOutputStream(file)) {
-            writeRoot(stream, compress);
+            writeRoot(new NBTOutputStream(stream, compress));
         }
     }
 
     public void writeRoot(OutputStream stream) throws IOException {
-        writeRoot(stream, false);
+        writeRoot(stream instanceof NBTOutputStream ? (NBTOutputStream) stream : new NBTOutputStream(stream, false));
     }
 
-    public void writeRoot(OutputStream stream, boolean compress) throws IOException {
-        new NBTOutputStream(stream, compress).writeRootCompound(this);
+    public void writeRoot(NBTOutputStream stream) throws IOException {
+        stream.writeRootCompound(this);
     }
 
     public void writeRoot(OutputStream stream, @Nullable String rootName) throws IOException {

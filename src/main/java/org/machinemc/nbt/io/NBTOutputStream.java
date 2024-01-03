@@ -40,29 +40,14 @@ public class NBTOutputStream extends OutputStream {
         }
     }
 
-    public void writeNBT(NBT<?> nbt) throws IOException {
-        if (nbt instanceof NBTCompound || nbt instanceof NBTList) {
-            writeObject(nbt);
-            return;
-        }
-        writeObject(nbt.revert());
+    public void writeObject(Object object) throws IOException {
+        NBT<?> nbt = NBT.convert(object);
+        if (nbt == null) throw new IllegalArgumentException("Cannot write object '" + object + "' as NBT");
+        writeNBT(nbt);
     }
 
-    public void writeObject(Object object) throws IOException {
-        if (object == null) writeTag(NBT.Tag.END);
-        else if (object instanceof Byte value) writeByte(value);
-        else if (object instanceof Short value) writeShort(value);
-        else if (object instanceof Integer value) writeInt(value);
-        else if (object instanceof Long value) writeLong(value);
-        else if (object instanceof Float value) writeFloat(value);
-        else if (object instanceof Double value) writeDouble(value);
-        else if (object instanceof String value) writeString(value);
-        else if (object instanceof byte[] value) writeByteArray(value);
-        else if (object instanceof int[] value) writeIntArray(value);
-        else if (object instanceof long[] value) writeLongArray(value);
-        else if (object instanceof Collection<?> value) writeList(value);
-        else if (object instanceof Map<?, ?> value) writeCompound(value);
-        else throw new IllegalArgumentException("Cannot write object '" + object + "' as NBT");
+    public void writeNBT(NBT<?> nbt) throws IOException {
+        nbt.write(this);
     }
 
     public void writeTag(NBT.Tag tag) throws IOException {
@@ -105,29 +90,29 @@ public class NBTOutputStream extends OutputStream {
 
     public void writeByteArray(byte[] value) throws IOException {
         if (value == null) {
-            write(0);
+            writeInt(0);
             return;
         }
-        write(value.length);
+        writeInt(value.length);
         write(value);
     }
 
     public void writeIntArray(int[] value) throws IOException {
         if (value == null) {
-            write(0);
+            writeInt(0);
             return;
         }
-        write(value.length);
+        writeInt(value.length);
         for (int i : value)
             writeInt(i);
     }
 
     public void writeLongArray(long[] value) throws IOException {
         if (value == null) {
-            write(0);
+            writeInt(0);
             return;
         }
-        write(value.length);
+        writeInt(value.length);
         for (long i : value)
             writeLong(i);
     }
@@ -135,13 +120,13 @@ public class NBTOutputStream extends OutputStream {
     public void writeList(Collection<?> value) throws IOException {
         if (value == null) {
             writeEnd();
-            write(0);
+            writeInt(0);
             return;
         }
         NBTList list = (NBTList) NBT.convert(new ArrayList<>(value));
         assert list != null;
         writeTag(list.getElementType());
-        write(list.size());
+        writeInt(list.size());
         for (NBT<?> nbt : list)
             writeNBT(nbt);
     }
@@ -158,7 +143,7 @@ public class NBTOutputStream extends OutputStream {
     }
 
     public void writeEnd() throws IOException {
-        write(NBT.Tag.END.getID());
+        writeTag(NBT.Tag.END);
     }
 
     @Override

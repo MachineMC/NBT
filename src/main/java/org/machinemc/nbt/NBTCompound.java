@@ -48,11 +48,11 @@ public class NBTCompound implements NBT<Map<String, Object>>, Map<String, NBT<?>
     }
 
     public void writeRoot(OutputStream stream, @Nullable String rootName) throws IOException {
-        writeRoot(stream, rootName, false);
+        writeRoot(stream instanceof NBTOutputStream ? (NBTOutputStream) stream : new NBTOutputStream(stream, false), rootName);
     }
 
-    public void writeRoot(OutputStream stream, @Nullable String rootName, boolean compress) throws IOException {
-        new NBTOutputStream(stream, compress).writeRootCompound(this, rootName);
+    public void writeRoot(NBTOutputStream stream, @Nullable String rootName) throws IOException {
+        stream.writeRootCompound(this, rootName);
     }
 
     @Override

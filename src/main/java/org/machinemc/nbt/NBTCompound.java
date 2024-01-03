@@ -24,6 +24,11 @@ public class NBTCompound implements NBT<Map<String, Object>>, Map<String, NBT<?>
         else map.forEach((key, value) -> set(key + "", value));
     }
 
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeCompound(map);
+    }
+
     public void writeToFile(File file) throws IOException {
         writeToFile(file, false);
     }

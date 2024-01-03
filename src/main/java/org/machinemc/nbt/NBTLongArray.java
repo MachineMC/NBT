@@ -1,9 +1,11 @@
 package org.machinemc.nbt;
 
 import org.jetbrains.annotations.NotNull;
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -41,6 +43,11 @@ public class NBTLongArray implements NBTArray<long[], Long> {
     @Override
     public NBTLongArray clone() {
         return new NBTLongArray(longs.clone());
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeLongArray(longs);
     }
 
     @Override

@@ -1,7 +1,10 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
+
+import java.io.IOException;
 
 public class NBTByte implements NBT<Byte> {
 
@@ -37,6 +40,11 @@ public class NBTByte implements NBT<Byte> {
     @Override
     public NBTByte clone() {
         return new NBTByte(value);
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeByte(value);
     }
 
     @Override

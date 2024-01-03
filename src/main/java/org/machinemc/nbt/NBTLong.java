@@ -1,5 +1,6 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
@@ -36,6 +37,11 @@ public class NBTLong implements NBT<Long> {
     @Override
     public NBTLong clone() {
         return new NBTLong(value);
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeLong(value);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
@@ -38,6 +39,11 @@ public class NBTString implements NBT<String> {
     @Override
     public NBTString clone() {
         return new NBTString(string);
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeString(string);
     }
 
     @Override

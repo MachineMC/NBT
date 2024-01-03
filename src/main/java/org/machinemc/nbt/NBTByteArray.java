@@ -1,9 +1,11 @@
 package org.machinemc.nbt;
 
 import org.jetbrains.annotations.NotNull;
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -47,6 +49,11 @@ public class NBTByteArray implements NBTArray<byte[], Byte> {
     @Override
     public NBTByteArray clone() {
         return new NBTByteArray(bytes.clone());
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeByteArray(bytes);
     }
 
     @Override

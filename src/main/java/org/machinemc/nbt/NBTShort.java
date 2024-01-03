@@ -1,7 +1,10 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
+
+import java.io.IOException;
 
 public class NBTShort implements NBT<Short> {
 
@@ -33,6 +36,11 @@ public class NBTShort implements NBT<Short> {
     @Override
     public NBTShort clone() {
         return new NBTShort(value);
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeShort(value);
     }
 
     @Override

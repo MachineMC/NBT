@@ -2,9 +2,11 @@ package org.machinemc.nbt;
 
 import org.jetbrains.annotations.NotNull;
 import org.machinemc.nbt.exceptions.NBTException;
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
+import java.io.IOException;
 import java.util.*;
 
 public class NBTList implements NBT<List<Object>>, List<NBT<?>> {
@@ -60,6 +62,11 @@ public class NBTList implements NBT<List<Object>>, List<NBT<?>> {
     @Override
     public NBTList clone() {
         return new NBTList(list);
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeList(list);
     }
 
     public Tag getElementType() {

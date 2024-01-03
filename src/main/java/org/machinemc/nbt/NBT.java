@@ -27,10 +27,7 @@ public interface NBT<T> {
         write(stream instanceof NBTOutputStream ? (NBTOutputStream) stream : new NBTOutputStream(stream, false));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    default void write(NBTOutputStream stream) throws IOException {
-        ((Tag.Writer) tag().writer).write(stream, this.revert());
-    }
+    void write(NBTOutputStream stream) throws IOException;
 
     default boolean softEquals(Object object) {
         if (this == object) return true;
@@ -55,32 +52,30 @@ public interface NBT<T> {
 
     enum Tag {
 
-        END(Void.class, object -> NBTEnd.INSTANCE, (stream, unused) -> stream.writeEnd(), stream -> {
+        END(Void.class, object -> NBTEnd.INSTANCE, stream -> {
             throw new UnsupportedOperationException("Cannot read Tag_END NBT");
         }),
-        BYTE(Byte.class, NBTByte::new, NBTOutputStream::writeByte, NBTInputStream::readByte),
-        SHORT(Short.class, NBTShort::new, NBTOutputStream::writeShort, NBTInputStream::readShort),
-        INT(Integer.class, NBTInt::new, NBTOutputStream::writeInt, NBTInputStream::readInt),
-        LONG(Long.class, NBTLong::new, NBTOutputStream::writeLong, NBTInputStream::readLong),
-        FLOAT(Float.class, NBTFloat::new, NBTOutputStream::writeFloat, NBTInputStream::readFloat),
-        DOUBLE(Double.class, NBTDouble::new, NBTOutputStream::writeDouble, NBTInputStream::readDouble),
-        BYTE_ARRAY(byte[].class, NBTByteArray::new, NBTOutputStream::writeByteArray, NBTInputStream::readByteArray),
-        STRING(String.class, NBTString::new, NBTOutputStream::writeString, NBTInputStream::readString),
-        LIST(List.class, NBTList::new, NBTOutputStream::writeList, NBTInputStream::readList),
-        COMPOUND(Map.class, NBTCompound::new, NBTOutputStream::writeCompound, NBTInputStream::readCompound),
-        INT_ARRAY(int[].class, NBTIntArray::new, NBTOutputStream::writeIntArray, NBTInputStream::readIntArray),
-        LONG_ARRAY(long[].class, NBTLongArray::new, NBTOutputStream::writeLongArray, NBTInputStream::readLongArray);
+        BYTE(Byte.class, NBTByte::new, NBTInputStream::readByte),
+        SHORT(Short.class, NBTShort::new, NBTInputStream::readShort),
+        INT(Integer.class, NBTInt::new, NBTInputStream::readInt),
+        LONG(Long.class, NBTLong::new, NBTInputStream::readLong),
+        FLOAT(Float.class, NBTFloat::new, NBTInputStream::readFloat),
+        DOUBLE(Double.class, NBTDouble::new, NBTInputStream::readDouble),
+        BYTE_ARRAY(byte[].class, NBTByteArray::new, NBTInputStream::readByteArray),
+        STRING(String.class, NBTString::new, NBTInputStream::readString),
+        LIST(List.class, NBTList::new, NBTInputStream::readList),
+        COMPOUND(Map.class, NBTCompound::new, NBTInputStream::readCompound),
+        INT_ARRAY(int[].class, NBTIntArray::new, NBTInputStream::readIntArray),
+        LONG_ARRAY(long[].class, NBTLongArray::new, NBTInputStream::readLongArray);
 
         private final Class<?> type;
         private final Function<Object, NBT<?>> make;
-        private final Writer<?> writer;
         private final Reader reader;
 
         @SuppressWarnings({"unchecked", "rawtypes"})
-        <T> Tag(Class<T> type, Function<T, NBT<? extends T>> make, Writer<T> writer, Reader reader) {
+        <T> Tag(Class<T> type, Function<T, NBT<? extends T>> make, Reader reader) {
             this.type = type;
             this.make = (Function) make;
-            this.writer = writer;
             this.reader = reader;
         }
 
@@ -100,11 +95,6 @@ public interface NBT<T> {
         public NBT<?> read(InputStream stream) throws IOException {
             NBTInputStream nbtStream = stream instanceof NBTInputStream ? (NBTInputStream) stream : new NBTInputStream(stream);
             return reader.read(nbtStream);
-        }
-
-        @FunctionalInterface
-        private interface Writer<T> {
-            void write(NBTOutputStream stream, T t) throws IOException;
         }
 
         @FunctionalInterface

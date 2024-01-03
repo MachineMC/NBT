@@ -1,7 +1,10 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
+
+import java.io.IOException;
 
 public class NBTFloat implements NBT<Float> {
 
@@ -33,6 +36,11 @@ public class NBTFloat implements NBT<Float> {
     @Override
     public NBTFloat clone() {
         return new NBTFloat(value);
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeFloat(value);
     }
 
     @Override

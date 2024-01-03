@@ -1,5 +1,6 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
@@ -30,6 +31,11 @@ public class NBTEnd implements NBT<Void> {
     @Override
     public NBTEnd clone() {
         return INSTANCE;
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeEnd();
     }
 
     @Override

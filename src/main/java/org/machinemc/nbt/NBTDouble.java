@@ -1,7 +1,10 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
+
+import java.io.IOException;
 
 public class NBTDouble implements NBT<Double> {
 
@@ -33,6 +36,11 @@ public class NBTDouble implements NBT<Double> {
     @Override
     public NBTDouble clone() {
         return new NBTDouble(value);
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeDouble(value);
     }
 
     @Override

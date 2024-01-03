@@ -1,5 +1,6 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
@@ -36,6 +37,11 @@ public class NBTInt implements NBT<Integer> {
     @Override
     public NBTInt clone() {
         return new NBTInt(value);
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeInt(value);
     }
 
     @Override

@@ -3,6 +3,7 @@ package org.machinemc.nbt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.machinemc.nbt.exceptions.NBTException;
+import org.machinemc.nbt.io.NBTInputStream;
 import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
@@ -254,10 +255,37 @@ public class NBTCompound implements NBT<Map<String, Object>>, Map<String, NBT<?>
     }
 
     @SafeVarargs
-    public static NBTCompound ofEntries(Entry<String, NBT<?>>... entries) {
+    public static NBTCompound ofEntries(Entry<String, Object>... entries) {
         NBTCompound nbtCompound = new NBTCompound();
-        for (Entry<String, NBT<?>> entry : entries) nbtCompound.put(entry.getKey(), entry.getValue());
+        for (Entry<String, Object> entry : entries) {
+            NBT<?> value = NBT.convert(entry.getValue());
+            if (value == null)
+                throw new IllegalArgumentException("Couldn't convert '" + entry.getValue() + "' to an NBT value");
+            nbtCompound.put(entry.getKey(), value);
+        }
         return nbtCompound;
+    }
+
+    public static NBTCompound readFromFile(File file) throws IOException {
+        return readFromFile(file, false);
+    }
+
+    public static NBTCompound readFromFile(File file, boolean hasRootKey) throws IOException {
+        try (FileInputStream stream = new FileInputStream(file)) {
+            return readRootCompound(stream, hasRootKey);
+        }
+    }
+
+    public static NBTCompound readRootCompound(InputStream stream) throws IOException {
+        return new NBTInputStream(stream).readRootCompound();
+    }
+
+    public static NBTCompound readRootCompound(InputStream stream, boolean hasRootKey) throws IOException {
+        return new NBTInputStream(stream).readRootCompound(hasRootKey);
+    }
+
+    public static NBTCompound readCompound(InputStream stream) throws IOException {
+        return new NBTInputStream(stream).readCompound();
     }
 
 }

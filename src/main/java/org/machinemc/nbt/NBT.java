@@ -101,7 +101,7 @@ public interface NBT<T> {
         private interface Reader {
             NBT<?> read(NBTInputStream stream) throws IOException;
         }
-        
+
     }
 
     @FunctionalInterface

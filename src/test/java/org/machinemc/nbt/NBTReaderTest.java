@@ -1,7 +1,6 @@
 package org.machinemc.nbt;
 
 import org.junit.Test;
-import org.machinemc.nbt.io.NBTReader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +13,7 @@ public class NBTReaderTest {
     public void bigtest() throws IOException {
         URL resource = getResource("bigtest.nbt");
         try (InputStream stream = resource.openStream()) {
-            NBTCompound compound = NBTReader.readRootCompound(stream);
+            NBTCompound compound = NBTCompound.readRootCompound(stream);
             assert Objects.equals(compound.getValue("shortTest"), (short) 32767);
             assert Objects.equals(compound.getValue("longTest"), 9223372036854775807L);
             assert Objects.equals(compound.getValue("byteTest"), (byte) 127);
@@ -54,7 +53,7 @@ public class NBTReaderTest {
     public void helloWorld() throws IOException {
         URL resource = getResource("hello_world.nbt");
         try (InputStream stream = resource.openStream()) {
-            NBTCompound compound = NBTReader.readRootCompound(stream);
+            NBTCompound compound = NBTCompound.readRootCompound(stream);
             assert compound.getValue("name", "foo").equals("Bananrama");
         }
     }
@@ -63,7 +62,7 @@ public class NBTReaderTest {
     public void playerNanValue() throws IOException {
         URL resource = getResource("Player-nan-value.dat");
         try (InputStream stream = resource.openStream()) {
-            NBTCompound compound = NBTReader.readRootCompound(stream);
+            NBTCompound compound = NBTCompound.readRootCompound(stream);
             assert Objects.equals(compound.getValue("Motion"), List.of(0d, 0d, 0d));
             assert Objects.equals(compound.getValue("FallDistance"), 0f);
             assert Objects.equals(compound.getValue("Pos"), List.of(0d, Double.NaN, 0d));

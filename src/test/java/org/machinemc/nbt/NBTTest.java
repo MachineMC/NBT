@@ -1,7 +1,6 @@
 package org.machinemc.nbt;
 
 import org.junit.Test;
-import org.machinemc.nbt.io.NBTReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,7 +32,7 @@ public class NBTTest {
         compound.write(stream);
         final byte[] bytes = stream.toByteArray();
         final ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-        final NBTCompound read = NBTReader.readCompound(input);
+        final NBTCompound read = NBTCompound.readCompound(input);
         assert read.containsKey("first");
         assert read.containsKey("test");
         assert read.getValue("first") instanceof Byte;
@@ -66,7 +65,7 @@ public class NBTTest {
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         compound.write(stream);
         final byte[] bytes = stream.toByteArray();
-        NBTCompound second = NBTReader.readCompound(new ByteArrayInputStream(bytes));
+        NBTCompound second = NBTCompound.readCompound(new ByteArrayInputStream(bytes));
         assert second.size() == 1;
         assert second.<NBTList>get("list").size() == 2;
         assert second.<NBTList>get("list").get(0).revert().equals(10);
@@ -87,7 +86,7 @@ public class NBTTest {
             final ByteArrayOutputStream stream = new ByteArrayOutputStream();
             first.write(stream);
             final byte[] bytes = stream.toByteArray();
-            second = NBTReader.readCompound(new ByteArrayInputStream(bytes));
+            second = NBTCompound.readCompound(new ByteArrayInputStream(bytes));
         }
         assert second.size() == 4;
         assert second.getValue("hello").equals("there");
@@ -99,7 +98,7 @@ public class NBTTest {
             final ByteArrayOutputStream stream = new ByteArrayOutputStream();
             first.writeRoot(stream);
             final byte[] bytes = stream.toByteArray();
-            second = NBTReader.readRootCompound(new ByteArrayInputStream(bytes));
+            second = NBTCompound.readRootCompound(new ByteArrayInputStream(bytes));
         }
         assert second.size() == 4;
         assert second.getValue("hello").equals("there");

@@ -32,7 +32,7 @@ public class NBTLongArray implements NBTArray<long[], Long> {
 
     @Override
     public long[] revert() {
-        return longs;
+        return longs.clone();
     }
 
     @Override

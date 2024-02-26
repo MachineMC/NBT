@@ -41,7 +41,7 @@ public class NBTOutputStream extends OutputStream {
     }
 
     public void writeObject(Object object) throws IOException {
-        NBT<?> nbt = NBT.convert(object);
+        NBT nbt = NBT.convert(object);
         if (nbt == null) throw new IllegalArgumentException("Cannot write object '" + object + "' as NBT");
         writeNBT(nbt);
     }

@@ -22,11 +22,11 @@ public class NBTOutputStream extends OutputStream {
         this.out = compress ? new GZIPOutputStream(out) : out;
     }
 
-    public void writeRootCompound(NBTCompound compound) throws IOException {
+    public void writeRootCompound(@Nullable NBTCompound compound) throws IOException {
         writeRootCompound(compound, "");
     }
 
-    public void writeRootCompound(NBTCompound compound, @Nullable String rootName) throws IOException {
+    public void writeRootCompound(@Nullable NBTCompound compound, @Nullable String rootName) throws IOException {
         try {
             if (compound == null) {
                 writeEnd();

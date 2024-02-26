@@ -1,18 +1,24 @@
 package org.machinemc.nbt;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.UnmodifiableView;
 import org.machinemc.nbt.exceptions.NBTException;
 import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
+import java.util.function.Consumer;
 
-public class NBTList implements NBT<List<Object>>, List<NBT<?>> {
+public class NBTList implements NBT<List<Object>>, Iterable<NBT<?>> {
 
     private final List<NBT<?>> list;
     private Tag type = Tag.END;
+
+    private transient ListView listView;
+    private transient NBTList unmodifiableView;
 
     public NBTList() {
         this(Tag.END);
@@ -73,17 +79,14 @@ public class NBTList implements NBT<List<Object>>, List<NBT<?>> {
         return type;
     }
 
-    @Override
     public int size() {
         return list.size();
     }
 
-    @Override
     public boolean isEmpty() {
         return list.isEmpty();
     }
 
-    @Override
     public boolean contains(Object o) {
         return list.contains(NBT.convert(o));
     }
@@ -91,16 +94,6 @@ public class NBTList implements NBT<List<Object>>, List<NBT<?>> {
     @Override
     public @NotNull Iterator<NBT<?>> iterator() {
         return list.iterator();
-    }
-
-    @Override
-    public NBT<?> @NotNull [] toArray() {
-        return list.toArray(new NBT[0]);
-    }
-
-    @Override
-    public <T> T @NotNull [] toArray(T @NotNull [] a) {
-        return list.toArray(a);
     }
 
     public <T> T getValue(int index, T defaultValue) {
@@ -119,7 +112,6 @@ public class NBTList implements NBT<List<Object>>, List<NBT<?>> {
         return value != null ? value : defaultValue;
     }
 
-    @Override
     public NBT<?> get(int index) {
         return list.get(index);
     }
@@ -128,7 +120,6 @@ public class NBTList implements NBT<List<Object>>, List<NBT<?>> {
         return NBT.revert(set(index, NBT.convert(element)));
     }
 
-    @Override
     public NBT<?> set(int index, NBT<?> element) {
         return list.set(index, check(element));
     }
@@ -137,93 +128,46 @@ public class NBTList implements NBT<List<Object>>, List<NBT<?>> {
         add(index, NBT.convert(element));
     }
 
-    @Override
     public void add(int index, NBT<?> element) {
         list.add(index, check(element));
     }
 
-    @Override
     public NBT<?> remove(int index) {
         return list.remove(index);
     }
 
-    @Override
     public int indexOf(Object o) {
         return list.indexOf(NBT.convert(o));
     }
 
-    @Override
     public int lastIndexOf(Object o) {
         return list.lastIndexOf(NBT.convert(o));
-    }
-
-    @Override
-    public @NotNull ListIterator<NBT<?>> listIterator() {
-        return list.listIterator();
-    }
-
-    @Override
-    public @NotNull ListIterator<NBT<?>> listIterator(int index) {
-        return list.listIterator(index);
-    }
-
-    @Override
-    public @NotNull List<NBT<?>> subList(int fromIndex, int toIndex) {
-        return list.subList(fromIndex, toIndex);
     }
 
     public boolean addValue(Object element) {
         return add(NBT.convert(element));
     }
 
-    @Override
     public boolean add(NBT<?> nbt) {
         return list.add(check(nbt));
     }
 
-    @Override
     public boolean remove(Object o) {
         return list.remove(NBT.convert(o));
     }
 
-    @Override
-    public boolean containsAll(@NotNull Collection<?> c) {
-        Collection<? extends NBT<?>> other = new NBTList(c).list;
-        return new HashSet<>(list).containsAll(other);
-    }
-
-    @Override
-    public boolean addAll(@NotNull Collection<? extends NBT<?>> c) {
-        int length = c.size();
-        if (length == 0) return false;
-        c.forEach(this::add);
-        return true;
-    }
-
-    @Override
-    public boolean addAll(int index, @NotNull Collection<? extends NBT<?>> c) {
-        int length = c.size();
-        if (length == 0) return false;
-        for (NBT<?> nbt : c) add(index++, nbt);
-        return true;
-    }
-
-    @Override
-    public boolean removeAll(@NotNull Collection<?> c) {
-        boolean modified = false;
-        for (Object element : c)
-            modified |= remove(element);
-        return modified;
-    }
-
-    @Override
-    public boolean retainAll(@NotNull Collection<?> c) {
-        return list.retainAll(c);
-    }
-
-    @Override
     public void clear() {
         list.clear();
+    }
+
+    public List<NBT<?>> listView() {
+        if (listView == null) listView = new ListView();
+        return listView;
+    }
+
+    public @UnmodifiableView NBTList unmodifiableView() {
+        if (unmodifiableView == null) unmodifiableView = new UnmodifiableListView();
+        return unmodifiableView;
     }
 
     @Override
@@ -254,4 +198,340 @@ public class NBTList implements NBT<List<Object>>, List<NBT<?>> {
         return nbt;
     }
 
+    private class ListView implements List<NBT<?>> {
+
+        @Override
+        public int size() {
+            return NBTList.this.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return NBTList.this.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return NBTList.this.contains(o);
+        }
+
+        @Override
+        public @NotNull Iterator<NBT<?>> iterator() {
+            return NBTList.this.iterator();
+        }
+
+        @Override
+        public NBT<?> @NotNull [] toArray() {
+            return list.toArray(new NBT[0]);
+        }
+
+        @Override
+        public <T> T @NotNull [] toArray(T @NotNull [] a) {
+            return list.toArray(a);
+        }
+
+        @Override
+        public boolean add(NBT<?> nbt) {
+            return NBTList.this.add(nbt);
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            return NBTList.this.remove(o);
+        }
+
+        @Override
+        public boolean containsAll(@NotNull Collection<?> c) {
+            for (Object object : c) {
+                if (!NBTList.this.contains(object))
+                    return false;
+            }
+            return true;
+        }
+
+        @Override
+        public boolean addAll(@NotNull Collection<? extends NBT<?>> c) {
+            boolean modified = false;
+            for (NBT<?> nbt : c)
+                modified |= NBTList.this.add(nbt);
+            return modified;
+        }
+
+        @Override
+        public boolean addAll(int index, @NotNull Collection<? extends NBT<?>> c) {
+            boolean modified = false;
+            for (NBT<?> nbt : c)
+                NBTList.this.add(index++, nbt);
+            return modified;
+        }
+
+        @Override
+        public boolean removeAll(@NotNull Collection<?> c) {
+            boolean modified = false;
+            for (Object object : c)
+                modified |= NBTList.this.remove(object);
+            return modified;
+        }
+
+        @Override
+        public boolean retainAll(@NotNull Collection<?> c) {
+            boolean modified = false;
+            Iterator<NBT<?>> iterator = iterator();
+            while (iterator.hasNext()) {
+                if (!c.contains(iterator.next())) {
+                    iterator.remove();
+                    modified = true;
+                }
+            }
+            return modified;
+        }
+
+        @Override
+        public void clear() {
+            NBTList.this.clear();
+        }
+
+        @Override
+        public NBT<?> get(int index) {
+            return NBTList.this.get(index);
+        }
+
+        @Override
+        public NBT<?> set(int index, NBT<?> element) {
+            return NBTList.this.set(index, element);
+        }
+
+        @Override
+        public void add(int index, NBT<?> element) {
+            NBTList.this.add(index, element);
+        }
+
+        @Override
+        public NBT<?> remove(int index) {
+            return NBTList.this.remove(index);
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            return NBTList.this.indexOf(o);
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            return NBTList.this.lastIndexOf(o);
+        }
+
+        @Override
+        public @NotNull ListIterator<NBT<?>> listIterator() {
+            return list.listIterator();
+        }
+
+        @Override
+        public @NotNull ListIterator<NBT<?>> listIterator(int index) {
+            return list.listIterator(index);
+        }
+
+        @Override
+        public @NotNull List<NBT<?>> subList(int fromIndex, int toIndex) {
+            return list.subList(fromIndex, toIndex);
+        }
+
+    }
+
+    private class UnmodifiableListView extends NBTList {
+
+        @Override
+        public Tag tag() {
+            return NBTList.this.tag();
+        }
+
+        @Override
+        public List<Object> revert() {
+            return NBTList.this.revert();
+        }
+
+        @Override
+        public void accept(NBTVisitor visitor) {
+            NBTList.this.accept(visitor);
+        }
+
+        @Override
+        public NBTList clone() {
+            return NBTList.this.clone().unmodifiableView();
+        }
+
+        @Override
+        public void write(NBTOutputStream stream) throws IOException {
+            NBTList.this.write(stream);
+        }
+
+        @Override
+        public Tag getElementType() {
+            return NBTList.this.getElementType();
+        }
+
+        @Override
+        public int size() {
+            return NBTList.this.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return NBTList.this.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return NBTList.this.contains(o);
+        }
+
+        @Override
+        public @NotNull Iterator<NBT<?>> iterator() {
+            return new Iterator<>() {
+                private final Iterator<NBT<?>> iterator = NBTList.this.iterator();
+
+                @Override
+                public boolean hasNext() {
+                    return iterator.hasNext();
+                }
+
+                @Override
+                public NBT<?> next() {
+                    return iterator.next();
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public void forEachRemaining(Consumer<? super NBT<?>> action) {
+                    iterator.forEachRemaining(action);
+                }
+            };
+        }
+
+        @Override
+        public <T> T getValue(int index, T defaultValue) {
+            return NBTList.this.getValue(index, defaultValue);
+        }
+
+        @Override
+        public <T> T getValue(int index) {
+            return NBTList.this.getValue(index);
+        }
+
+        @Override
+        public <T extends NBT<?>> T get(int index, T defaultValue) {
+            return NBTList.this.get(index, defaultValue);
+        }
+
+        @Override
+        public NBT<?> get(int index) {
+            return NBTList.this.get(index);
+        }
+
+        @Override
+        public Object setValue(int index, Object element) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public NBT<?> set(int index, NBT<?> element) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void addValue(int index, Object element) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void add(int index, NBT<?> element) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public NBT<?> remove(int index) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            return NBTList.this.indexOf(o);
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            return NBTList.this.lastIndexOf(o);
+        }
+
+        @Override
+        public boolean addValue(Object element) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean add(NBT<?> nbt) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<NBT<?>> listView() {
+            return Collections.unmodifiableList(NBTList.this.listView());
+        }
+
+        @Override
+        public @UnmodifiableView NBTList unmodifiableView() {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return NBTList.this.toString();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return NBTList.this.equals(obj);
+        }
+
+        @Override
+        public int hashCode() {
+            return NBTList.this.hashCode();
+        }
+
+        @Override
+        public void forEach(Consumer<? super NBT<?>> action) {
+            NBTList.this.forEach(action);
+        }
+
+        @Override
+        public Spliterator<NBT<?>> spliterator() {
+            return NBTList.this.spliterator();
+        }
+
+        @Override
+        public void write(OutputStream stream) throws IOException {
+            NBTList.this.write(stream);
+        }
+
+        @Override
+        public boolean softEquals(Object object) {
+            return NBTList.this.softEquals(object);
+        }
+
+    }
+    
 }

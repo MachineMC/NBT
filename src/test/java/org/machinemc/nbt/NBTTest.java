@@ -67,9 +67,9 @@ public class NBTTest {
         final byte[] bytes = stream.toByteArray();
         NBTCompound second = NBTCompound.readCompound(new ByteArrayInputStream(bytes));
         assert second.size() == 1;
-        assert second.<NBTList>get("list").size() == 2;
-        assert second.<NBTList>get("list").get(0).revert().equals(10);
-        assert second.<NBTList>get("list").get(1).revert().equals(3);
+        assert second.<NBTList>getNBT("list").size() == 2;
+        assert second.<NBTList>getNBT("list").get(0).revert().equals(10);
+        assert second.<NBTList>getNBT("list").get(1).revert().equals(3);
     }
 
     @Test
@@ -144,7 +144,7 @@ public class NBTTest {
         assert compound.get("beans", this::extract, "beans").equals("beans");
         compound.remove("hello");
         assert compound.get("hello", this::extract, "beans").equals("beans");
-        assert compound.get("hello", (NBT.Extractor<String>) this::extract) == null;
+        assert compound.get("hello", this::extract) == null;
     }
 
     @Test
@@ -156,10 +156,10 @@ public class NBTTest {
         assert !compound.containsKey("hello");
         compound.setList("hello", this::insert, List.of("there", "general", "kenobi"));
         assert compound.containsKey("hello");
-        assert compound.<NBTList>get("hello").size() == 3;
+        assert compound.<NBTList>getNBT("hello").size() == 3;
         compound.setList("hello", this::insert, "there", "general", "kenobi");
         assert compound.containsKey("hello");
-        assert compound.<NBTList>get("hello").size() == 3;
+        assert compound.<NBTList>getNBT("hello").size() == 3;
         final List<String> list = compound.getList("hello", this::extract);
         assert list != null;
         assert list.size() == 3;

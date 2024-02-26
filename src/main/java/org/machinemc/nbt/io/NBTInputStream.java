@@ -110,7 +110,7 @@ public class NBTInputStream extends InputStream {
             if (tag == NBT.Tag.END) break;
             String key = readString().revert();
             value = readNBT(tag);
-            compound.put(key, value);
+            compound.set(key, value);
         }
         return compound;
     }

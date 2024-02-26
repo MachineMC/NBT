@@ -3,10 +3,7 @@ package org.machinemc.nbt;
 import org.junit.Test;
 import org.machinemc.nbt.parser.NBTParser;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class NBTParserTest {
@@ -14,12 +11,12 @@ public class NBTParserTest {
     @Test
     public void basic() {
         final NBTCompound compound = new NBTCompound();
-        compound.put("Foo", new NBTByte(10));
-        compound.put("Bar", new NBTString("Boo"));
+        compound.set("Foo", new NBTByte(10));
+        compound.set("Bar", new NBTString("Boo"));
         final NBTCompound parsed = new NBTParser(compound.toString()).parse();
 
-        assert compound.get("Foo").equals(parsed.get("Foo"));
-        assert compound.get("Bar").equals(parsed.get("Bar"));
+        assert compound.getNBT("Foo").equals(parsed.getNBT("Foo"));
+        assert compound.getNBT("Bar").equals(parsed.getNBT("Bar"));
     }
 
     @Test
@@ -31,10 +28,8 @@ public class NBTParserTest {
         list.addValue(3);
         list.addValue(5);
         final NBTCompound parsed = new NBTParser(compound.toString()).parse();
-        assert parsed.get("list") != null;
-        List<Object> parsedList = ((List<?>) parsed.get("list")).stream()
-                .map(nbt -> ((NBT<?>) nbt).revert())
-                .collect(Collectors.toList());
+        assert parsed.getNBT("list") != null;
+        List<Object> parsedList = parsed.getValue("list");
         assert parsedList.get(0).equals(10);
         assert parsedList.get(1).equals(3);
         assert parsedList.get(2).equals(5);
@@ -45,13 +40,13 @@ public class NBTParserTest {
         final NBTCompound compound = new NBTCompound();
         Random random = new Random();
         for (int i = 0; i < 200; i++)
-            compound.put(String.valueOf(random.nextInt()), new NBTString(UUID.randomUUID()));
+            compound.set(String.valueOf(random.nextInt()), new NBTString(UUID.randomUUID()));
         final NBTCompound parsed = new NBTParser(compound.toString()).parse();
 
         assert compound.size() == parsed.size();
 
         for (Map.Entry<String, NBT<?>> entry : compound) {
-            assert parsed.get(entry.getKey()) != null;
+            assert parsed.getNBT(entry.getKey()) != null;
             assert NBT.revert(entry.getValue()).equals(parsed.getValue(entry.getKey()));
         }
     }

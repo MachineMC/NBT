@@ -5,7 +5,6 @@ import org.machinemc.nbt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class NBTStringVisitor implements NBTVisitor {
 
@@ -122,7 +121,7 @@ public class NBTStringVisitor implements NBTVisitor {
                 builder.append(',');
 
             builder.append(handleEscape(key)).append(':');
-            builder.append(new NBTStringVisitor().visitNBT(nbtCompound.get(key)));
+            builder.append(new NBTStringVisitor().visitNBT(nbtCompound.getNBT(key)));
         }
 
         builder.append('}');

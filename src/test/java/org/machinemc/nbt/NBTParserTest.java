@@ -4,7 +4,6 @@ import org.junit.Test;
 import org.machinemc.nbt.parser.NBTParser;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class NBTParserTest {
 

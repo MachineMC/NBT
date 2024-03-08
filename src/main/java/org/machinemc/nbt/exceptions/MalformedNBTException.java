@@ -1,41 +1,75 @@
 package org.machinemc.nbt.exceptions;
 
+import org.machinemc.nbt.parser.StringReader;
+
 public class MalformedNBTException extends NBTException {
 
-    public MalformedNBTException(String message, int pos) {
-        super(String.format("Malformed NBT data: %s at pos %d", message, pos));
+    public static final DynamicMalformedNBTExceptionType ARRAY_INVALID = new DynamicMalformedNBTExceptionType(1, args ->
+            "Invalid array type '" + args[0] + "'");
+    public static final DynamicMalformedNBTExceptionType ARRAY_MIXED = new DynamicMalformedNBTExceptionType(2, args ->
+            "Can't insert " + args[0] + " into " + args[1]);
+    public static final MalformedNBTExceptionType EXPECTED_KEY = new MalformedNBTExceptionType("Expected key");
+    public static final MalformedNBTExceptionType EXPECTED_VALUE = new MalformedNBTExceptionType("Expected value");
+    public static final DynamicMalformedNBTExceptionType LIST_MIXED = new DynamicMalformedNBTExceptionType(2, args ->
+            "Can't insert " + args[0] + " into list of " + args[1]);
+    public static final MalformedNBTExceptionType EXPECTED_END_OF_QUOTE = new MalformedNBTExceptionType("Unclosed quoted string");
+    public static final DynamicMalformedNBTExceptionType INVALID_ESCAPE = new DynamicMalformedNBTExceptionType(1, args ->
+            "Invalid escape sequence '" + args[0] + "' in quoted string");
+    public static final DynamicMalformedNBTExceptionType EXPECTED_SYMBOL = new DynamicMalformedNBTExceptionType(1, args ->
+            "Expected '" + args[0] + "'");
+
+    public static boolean ENABLE_STACK_TRACES = true;
+    public static int SUBPART_SHOWN = 10;
+
+    private final String message;
+    private final String input;
+    private final int cursor;
+
+    public MalformedNBTException(String message) {
+        this(message, null, -1);
     }
 
-    public static MalformedNBTException unexpectedArrayType(char dataClass, int pos) {
-        return new MalformedNBTException("Unexpected array type '" + dataClass + '\'', pos);
+    public MalformedNBTException(String message, StringReader reader) {
+        this(message, reader.getInput(), reader.getCursor());
     }
 
-    public static MalformedNBTException valueDoesNotMatchArrayType(Class<?> arrayType, int pos) {
-        return new MalformedNBTException("Unable to parse array. Value is not of expected type " + arrayType.getName() + ".", pos);
+    public MalformedNBTException(String message, String input, int cursor) {
+        super(message, null, ENABLE_STACK_TRACES, ENABLE_STACK_TRACES);
+        this.message = message;
+        this.input = input;
+        this.cursor = cursor;
     }
 
-    public static MalformedNBTException unexpectedTrailingCharacter(int pos) {
-        return new MalformedNBTException("An unexpected character was found after the end of the NBT data.", pos);
+    @Override
+    public String getMessage() {
+        String message = getRawMessage();
+        String context = getContext();
+        if (context != null)
+            message += " at position " + cursor + ": " + context;
+        return message;
     }
 
-    public static MalformedNBTException multipleDecimaledNumber(String number, int pos) {
-        return new MalformedNBTException("The number contains multiple decimal points: " + number, pos);
+    public String getContext() {
+        if (input == null || cursor < 0) return null;
+        StringBuilder builder = new StringBuilder();
+        int cursor = Math.min(input.length(), this.cursor);
+        if (cursor > SUBPART_SHOWN) builder.append("...");
+
+        builder.append(input, Math.max(0, cursor - SUBPART_SHOWN), cursor);
+        builder.append("<--[HERE]");
+        return builder.toString();
     }
 
-    public static MalformedNBTException unterminatedQuote(int pos) {
-        return new MalformedNBTException("Unterminated quoted literal", pos);
+    public String getRawMessage() {
+        return message;
     }
 
-    public static MalformedNBTException emptyUnquotedString(int pos) {
-        return new MalformedNBTException("Unable to parse unquoted string. Value is empty.", pos);
+    public String getInput() {
+        return input;
     }
 
-    public static MalformedNBTException expected(char expected, char actual, int pos) {
-        return new MalformedNBTException(String.format("Expected character '%s' but found '%s'", expected, actual), pos);
-    }
-
-    public static MalformedNBTException endedUnexpectedly(int pos) {
-        return new MalformedNBTException("The NBT data ended unexpectedly. A compound must be closed by a '}' character.", pos);
+    public int getCursor() {
+        return cursor;
     }
 
 }

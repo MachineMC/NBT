@@ -1,32 +1,26 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-public record NBTEnd(Void value) implements NBTValue<Void>, NBT {
+public class NBTEnd implements NBT<Void> {
 
-    public static final NBTEnd INSTANCE = new NBTEnd(null);
+    public static final NBTEnd INSTANCE = new NBTEnd();
 
-    public static NBTEnd getInstance(Object object) {
-        return INSTANCE;
-    }
-
-    @Override
-    public String toString() {
-        return new NBTStringVisitor().visitNBT(this);
-    }
-
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        stream.write(Tag.END.ordinal());
-    }
+    private NBTEnd() {}
 
     @Override
     public Tag tag() {
         return Tag.END;
+    }
+
+    @Override
+    public Void revert() {
+        return null;
     }
 
     @Override
@@ -35,17 +29,18 @@ public record NBTEnd(Void value) implements NBTValue<Void>, NBT {
     }
 
     @Override
-    public boolean equals(Object o) {
-        return o instanceof NBTEnd;
+    public NBTEnd clone() {
+        return INSTANCE;
     }
 
     @Override
-    public NBTEnd clone() {
-        try {
-            return (NBTEnd) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeEnd();
+    }
+
+    @Override
+    public String toString() {
+        return new NBTStringVisitor().visitNBT(this);
     }
 
 }

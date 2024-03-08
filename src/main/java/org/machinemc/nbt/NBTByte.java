@@ -1,34 +1,25 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
-public record NBTByte(Byte value) implements NBTValue<Byte>, NBT {
+public class NBTByte implements NBT<Byte> {
 
-    public NBTByte(Object value) {
-        this(((Number) value).byteValue());
+    private final byte value;
+
+    public NBTByte(Number number) {
+        this(number.byteValue());
     }
 
-    public NBTByte(Boolean value) {
-        this(value ? 1 : 0);
+    public NBTByte(boolean bool) {
+        this((byte) (bool ? 1 : 0));
     }
 
-    public NBTByte(InputStream stream) throws IOException {
-        this((byte) stream.read());
-    }
-
-    @Override
-    public String toString() {
-        return new NBTStringVisitor().visitNBT(this);
-    }
-
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        stream.write(value);
+    public NBTByte(byte value) {
+        this.value = value;
     }
 
     @Override
@@ -37,34 +28,38 @@ public record NBTByte(Byte value) implements NBTValue<Byte>, NBT {
     }
 
     @Override
+    public Byte revert() {
+        return value;
+    }
+
+    @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+    public NBTByte clone() {
+        return new NBTByte(value);
+    }
 
-        NBTByte nbtByte = (NBTByte) o;
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeByte(value);
+    }
 
-        return value.equals(nbtByte.value);
+    @Override
+    public String toString() {
+        return new NBTStringVisitor().visitNBT(this);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || obj instanceof NBTByte other && value == other.value;
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
-    }
-
-    @Override
-    public NBTByte clone() {
-        try {
-            return (NBTByte) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        return Byte.hashCode(value);
     }
 
 }

@@ -11,9 +11,9 @@ public class NBTTest {
 
     @Test
     public void iteration() {
-        final NBTIntArray array = new NBTIntArray(new int[]{10, 14, 2});
+        final NBTIntArray array = new NBTIntArray(10, 14, 2);
         assert array.size() == 3;
-        final Integer[] integers = array.toArray();
+        final int[] integers = array.revert();
         assert integers.length == 3;
         for (Integer integer : array) assert integer > 1 && integer < 15;
         int count = 0;
@@ -32,7 +32,7 @@ public class NBTTest {
         compound.write(stream);
         final byte[] bytes = stream.toByteArray();
         final ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-        final NBTCompound read = new NBTCompound(input);
+        final NBTCompound read = NBTCompound.readCompound(input);
         assert read.containsKey("first");
         assert read.containsKey("test");
         assert read.getValue("first") instanceof Byte;
@@ -47,7 +47,7 @@ public class NBTTest {
         compound.set("hello", "there");
         compound.set("test", 10);
         compound.set("thing", -5.2);
-        compound.set("ints", 1, 2, 3);
+        compound.set("ints", new int[]{1, 2, 3});
         assert compound.size() == 4;
         assert compound.getValue("hello").equals("there");
         assert compound.getValue("test").equals(10);
@@ -57,7 +57,7 @@ public class NBTTest {
 
     @Test
     public void list() throws IOException {
-        final NBTCompound compound = new NBTCompound(), second = new NBTCompound();
+        final NBTCompound compound = new NBTCompound();
         final NBTList list = new NBTList();
         compound.set("list", list);
         list.addValue(10);
@@ -65,27 +65,28 @@ public class NBTTest {
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         compound.write(stream);
         final byte[] bytes = stream.toByteArray();
-        second.read(new ByteArrayInputStream(bytes));
+        NBTCompound second = NBTCompound.readCompound(new ByteArrayInputStream(bytes));
         assert second.size() == 1;
-        assert second.<List<NBT>>getValue("list").size() == 2;
-        assert second.<List<NBT>>getValue("list").get(0).value().equals(10);
-        assert second.<List<NBT>>getValue("list").get(1).value().equals(3);
+        assert second.<NBTList>getNBT("list").size() == 2;
+        assert second.<NBTList>getNBT("list").get(0).revert().equals(10);
+        assert second.<NBTList>getNBT("list").get(1).revert().equals(3);
     }
 
     @Test
     public void stream() throws IOException {
-        final NBTCompound first = new NBTCompound(), second = new NBTCompound();
+        final NBTCompound first = new NBTCompound();
+        NBTCompound second = new NBTCompound();
         first.set("hello", "there");
         first.set("test", 10);
         first.set("thing", -5.2);
-        first.set("ints", 1, 2, 3);
+        first.set("ints", new int[]{1, 2, 3});
         assert first.size() == 4;
-        assert second.size() == 0;
+        assert second.isEmpty();
         {
             final ByteArrayOutputStream stream = new ByteArrayOutputStream();
             first.write(stream);
             final byte[] bytes = stream.toByteArray();
-            second.read(new ByteArrayInputStream(bytes));
+            second = NBTCompound.readCompound(new ByteArrayInputStream(bytes));
         }
         assert second.size() == 4;
         assert second.getValue("hello").equals("there");
@@ -95,9 +96,9 @@ public class NBTTest {
         second.clear();
         {
             final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            first.writeAll(stream);
+            first.writeRoot(stream);
             final byte[] bytes = stream.toByteArray();
-            second.readAll(new ByteArrayInputStream(bytes));
+            second = NBTCompound.readRootCompound(new ByteArrayInputStream(bytes));
         }
         assert second.size() == 4;
         assert second.getValue("hello").equals("there");
@@ -130,16 +131,6 @@ public class NBTTest {
     }
 
     @Test
-    public void uuid() {
-        final NBTCompound compound = new NBTCompound();
-        final UUID uuid = UUID.randomUUID();
-        compound.set("test", uuid);
-        assert compound.hasUUID("test");
-        assert compound.getValue("test") instanceof int[];
-        assert Objects.equals(compound.getUUID("test"), uuid);
-    }
-
-    @Test
     public void customTypes() {
         final NBTCompound compound = new NBTCompound();
         compound.set("hello", "there");
@@ -153,7 +144,7 @@ public class NBTTest {
         assert compound.get("beans", this::extract, "beans").equals("beans");
         compound.remove("hello");
         assert compound.get("hello", this::extract, "beans").equals("beans");
-        assert compound.get("hello", (NBTValue.Extractor<String>) this::extract) == null;
+        assert compound.get("hello", this::extract) == null;
     }
 
     @Test
@@ -165,10 +156,10 @@ public class NBTTest {
         assert !compound.containsKey("hello");
         compound.setList("hello", this::insert, List.of("there", "general", "kenobi"));
         assert compound.containsKey("hello");
-        assert compound.getList("hello").size() == 3;
+        assert compound.<NBTList>getNBT("hello").size() == 3;
         compound.setList("hello", this::insert, "there", "general", "kenobi");
         assert compound.containsKey("hello");
-        assert compound.getList("hello").size() == 3;
+        assert compound.<NBTList>getNBT("hello").size() == 3;
         final List<String> list = compound.getList("hello", this::extract);
         assert list != null;
         assert list.size() == 3;
@@ -181,11 +172,11 @@ public class NBTTest {
         first.set("hello", "there");
         first.set("test", 10);
         first.set("thing", -5.2);
-        first.set("ints", 1, 2, 3);
+        first.set("ints", new int[]{1, 2, 3});
 
         final NBTCompound second = new NBTCompound();
         second.set("thing", -5.2);
-        second.set("ints", 1, 2, 3);
+        second.set("ints", new int[]{1, 2, 3});
         second.set("hello", "there");
         second.set("test", 10);
 
@@ -198,11 +189,11 @@ public class NBTTest {
         first.set("hello", "there");
         first.set("test", 10);
         first.set("thing", -5.2);
-        first.set("ints", 1, 2, 3);
+        first.set("ints", new int[]{1, 2, 3});
 
         final NBTCompound second = new NBTCompound();
         second.set("thing", -5.2);
-        second.set("ints", 1, 2, 3);
+        second.set("ints", new int[]{1, 2, 3});
         second.set("hello", "there");
         second.set("test", 10);
 

@@ -1,48 +1,28 @@
 package org.machinemc.nbt;
 
+import org.jetbrains.annotations.NotNull;
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Objects;
 
-public final class NBTIntArray implements NBTValue<int[]>, NBT, NBTArray<Integer> {
+public class NBTIntArray implements NBTArray<int[], Integer> {
 
-    private final int[] value;
+    private final int[] ints;
 
-    public NBTIntArray(int[] value) {
-        this.value = value;
+    public NBTIntArray(Integer[] ints) {
+        this(unbox(ints));
     }
 
-    public NBTIntArray(Integer[] value) {
-        this(unbox(value));
+    public NBTIntArray(int size) {
+        this(new int[size]);
     }
 
-    NBTIntArray(Object value) {
-        this((int[]) value);
-    }
-
-    public NBTIntArray(InputStream stream) throws IOException {
-        this(decodeInts(stream));
-    }
-
-    static int[] decodeInts(InputStream stream) throws IOException {
-        final int[] ints = new int[NBTInt.decodeInt(stream)];
-        for (int i = 0; i < ints.length; i++) ints[i] = NBTInt.decodeInt(stream);
-        return ints;
-    }
-
-    @Override
-    public String toString() {
-        return new NBTStringVisitor().visitNBT(this);
-    }
-
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        NBTInt.encodeInt(stream, value.length);
-        for (int i : value) NBTInt.encodeInt(stream, i);
+    public NBTIntArray(int... ints) {
+        this.ints = ints;
     }
 
     @Override
@@ -51,54 +31,64 @@ public final class NBTIntArray implements NBTValue<int[]>, NBT, NBTArray<Integer
     }
 
     @Override
+    public int[] revert() {
+        return ints.clone();
+    }
+
+    @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public Integer[] toArray() {
-        final Integer[] array = new Integer[value.length];
-        for (int i = 0; i < value.length; i++) array[i] = value[i];
-        return array;
+    public NBTIntArray clone() {
+        return new NBTIntArray(ints.clone());
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeIntArray(ints);
     }
 
     @Override
     public int size() {
-        return value.length;
+        return ints.length;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+    public Integer get(int index) {
+        return ints[index];
+    }
 
-        NBTIntArray nbtIntArray = (NBTIntArray) o;
+    @Override
+    public void set(int index, @NotNull Integer element) {
+        ints[index] = Objects.requireNonNull(element, "element");
+    }
 
-        return Arrays.equals(value, nbtIntArray.value);
+    @Override
+    public Tag getElementType() {
+        return Tag.INT;
+    }
+
+    @Override
+    public String toString() {
+        return new NBTStringVisitor().visitNBT(this);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this || obj instanceof NBTIntArray other && Arrays.equals(ints, other.ints);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(value);
+        return Arrays.hashCode(ints);
     }
 
-    @Override
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public NBTIntArray clone() {
-        return new NBTIntArray(value.clone());
-    }
-
-    @Override
-    public int[] value() {
-        return value.clone();
-    }
-
-    private static int[] unbox(Integer... value) {
-        final int[] array = new int[value.length];
-        for (int i = 0; i < value.length; i++) array[i] = value[i];
-        return array;
+    private static int[] unbox(Integer[] value) {
+        int[] primitive = new int[value.length];
+        for (int i = 0; i < value.length; i++) primitive[i] = value[i];
+        return primitive;
     }
 
 }

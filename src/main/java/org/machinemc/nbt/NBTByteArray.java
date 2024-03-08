@@ -1,49 +1,34 @@
 package org.machinemc.nbt;
 
+import org.jetbrains.annotations.NotNull;
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Objects;
 
-public final class NBTByteArray implements NBTValue<byte[]>, NBT, NBTArray<Byte> {
+public class NBTByteArray implements NBTArray<byte[], Byte> {
 
-    private final byte[] value;
+    private final byte[] bytes;
 
-    public NBTByteArray(byte[] value) {
-        this.value = value;
+    public NBTByteArray(Byte[] bytes) {
+        this(unbox(bytes));
     }
 
-    public NBTByteArray(Byte[] value) {
-        this(unbox(value));
+    public NBTByteArray(int... ints) {
+        this(ints.length);
+        for (int i = 0; i < bytes.length; i++)
+            bytes[i] = (byte) ints[i];
     }
 
-    NBTByteArray(Object value) {
-        this((byte[]) value);
+    public NBTByteArray(int size) {
+       this(new byte[size]);
     }
 
-    public NBTByteArray(InputStream stream) throws IOException {
-        this(decodeBytes(stream));
-    }
-
-    static byte[] decodeBytes(InputStream stream) throws IOException {
-        final byte[] bytes = new byte[NBTInt.decodeInt(stream)];
-        final int read = stream.read(bytes);
-        assert read == bytes.length;
-        return bytes;
-    }
-
-    @Override
-    public String toString() {
-        return new NBTStringVisitor().visitNBT(this);
-    }
-
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        NBTInt.encodeInt(stream, value.length);
-        stream.write(value);
+    public NBTByteArray(byte... bytes) {
+        this.bytes = bytes;
     }
 
     @Override
@@ -52,54 +37,64 @@ public final class NBTByteArray implements NBTValue<byte[]>, NBT, NBTArray<Byte>
     }
 
     @Override
+    public byte[] revert() {
+        return bytes.clone();
+    }
+
+    @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public Byte[] toArray() {
-        final Byte[] bytes = new Byte[value.length];
-        for (int i = 0; i < value.length; i++) bytes[i] = value[i];
-        return bytes;
+    public NBTByteArray clone() {
+        return new NBTByteArray(bytes.clone());
+    }
+
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeByteArray(bytes);
     }
 
     @Override
     public int size() {
-        return value.length;
+        return bytes.length;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+    public Byte get(int index) {
+        return bytes[index];
+    }
 
-        NBTByteArray bytes = (NBTByteArray) o;
+    @Override
+    public void set(int index, @NotNull Byte element) {
+        bytes[index] = Objects.requireNonNull(element, "element");
+    }
 
-        return Arrays.equals(value, bytes.value);
+    @Override
+    public Tag getElementType() {
+        return Tag.BYTE;
+    }
+
+    @Override
+    public String toString() {
+        return new NBTStringVisitor().visitNBT(this);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this || obj instanceof NBTByteArray other && Arrays.equals(bytes, other.bytes);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(value);
+        return Arrays.hashCode(bytes);
     }
 
-    @Override
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public NBTByteArray clone() {
-        return new NBTByteArray(value.clone());
-    }
-
-    @Override
-    public byte[] value() {
-        return value.clone();
-    }
-
-    private static byte[] unbox(Byte... value) {
-        final byte[] array = new byte[value.length];
-        for (int i = 0; i < value.length; i++) array[i] = value[i];
-        return array;
+    private static byte[] unbox(Byte[] value) {
+        byte[] primitive = new byte[value.length];
+        for (int i = 0; i < value.length; i++) primitive[i] = value[i];
+        return primitive;
     }
 
 }

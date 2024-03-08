@@ -54,20 +54,15 @@ public class StringReader implements Cloneable {
 
     public char peek(int offset) {
         int cursor = this.cursor + offset;
-        if (cursor < 0 || cursor >= end)
-            throw MalformedNBTException.endedUnexpectedly(cursor);
         return input.charAt(cursor);
     }
 
     public char read() {
-        if (cursor < 0 || cursor >= end)
-            throw MalformedNBTException.endedUnexpectedly(cursor);
         return input.charAt(cursor++);
     }
 
-    public char next() {
-        skipWhitespace();
-        return read();
+    public void skip() {
+        cursor++;
     }
 
     public void skipWhitespace() {
@@ -75,9 +70,20 @@ public class StringReader implements Cloneable {
     }
 
     public void eat(char expected) {
-        char actual = read();
-        if (actual != expected)
-            throw MalformedNBTException.expected(expected, actual, cursor);
+        if (!eatSafely(expected))
+            throw MalformedNBTException.EXPECTED_SYMBOL.createWithContext(this, expected);
+    }
+
+    public boolean eatSafely(char expected) {
+        skipWhitespace();
+        if (!canRead())
+            return false;
+        char found = peek();
+        if (found == expected) {
+            read();
+            return true;
+        }
+        return false;
     }
 
     public void reset() {

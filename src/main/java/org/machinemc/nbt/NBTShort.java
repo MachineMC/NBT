@@ -1,38 +1,21 @@
 package org.machinemc.nbt;
 
+import org.machinemc.nbt.io.NBTOutputStream;
 import org.machinemc.nbt.visitor.NBTStringVisitor;
 import org.machinemc.nbt.visitor.NBTVisitor;
 
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
-public record NBTShort(Short value) implements NBTValue<Short>, NBT {
+public class NBTShort implements NBT<Short> {
 
-    public NBTShort(Object value) {
-        this(((Number) value).shortValue());
+    private final short value;
+
+    public NBTShort(Number number) {
+        this(number.shortValue());
     }
 
-    public NBTShort(InputStream stream) throws IOException {
-        this(decodeShort(stream));
-    }
-
-    static short decodeShort(InputStream stream) throws IOException {
-        final int a = stream.read(), b = stream.read();
-        if (b < 0) throw new EOFException();
-        return (short) ((a << 8) + b);
-    }
-
-    @Override
-    public String toString() {
-        return new NBTStringVisitor().visitNBT(this);
-    }
-
-    @Override
-    public void write(OutputStream stream) throws IOException {
-        stream.write((value >>> 8));
-        stream.write(value);
+    public NBTShort(short value) {
+        this.value = value;
     }
 
     @Override
@@ -41,34 +24,38 @@ public record NBTShort(Short value) implements NBTValue<Short>, NBT {
     }
 
     @Override
+    public Short revert() {
+        return value;
+    }
+
+    @Override
     public void accept(NBTVisitor visitor) {
         visitor.visit(this);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+    public NBTShort clone() {
+        return new NBTShort(value);
+    }
 
-        NBTShort nbtShort = (NBTShort) o;
+    @Override
+    public void write(NBTOutputStream stream) throws IOException {
+        stream.writeShort(value);
+    }
 
-        return value.equals(nbtShort.value);
+    @Override
+    public String toString() {
+        return new NBTStringVisitor().visitNBT(this);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || obj instanceof NBTShort other && value == other.value;
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
-    }
-
-    @Override
-    public NBTShort clone() {
-        try {
-            return (NBTShort) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        return Short.hashCode(value);
     }
 
 }

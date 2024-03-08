@@ -88,9 +88,9 @@ dependencies {
 
 <dependencies>
     <dependency>
-        <groupId>com.github.Querz</groupId>
-        <artifactId>NBT</artifactId>
-        <version>6.1</version>
+        <groupId>org.machinemc</groupId>
+        <artifactId>nbt</artifactId>
+        <version>2.0.0</version>
     </dependency>
 </dependencies>
 ```

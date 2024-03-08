@@ -21,15 +21,35 @@ dependencies {
 }
 
 group = "org.machinemc"
-version = "1.1.0"
+version = "2.0.0"
 description = "NBT"
 
 publishing {
-    publications.create<MavenPublication>("maven") {
-        from(components["java"])
+    repositories {
+        maven {
+            name = "machine"
+            url = uri("https://repo.machinemc.org/releases")
+            credentials(PasswordCredentials::class)
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "org.machinemc"
+            artifactId = "nbt"
+            version = project.version.toString()
+            from(components["java"])
+        }
     }
 }
 
-tasks.withType<JavaCompile>() {
-    options.encoding = "UTF-8"
+tasks {
+    java {
+        withSourcesJar()
+    }
+    withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
 }

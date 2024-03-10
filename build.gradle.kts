@@ -6,11 +6,6 @@ plugins {
 repositories {
     mavenLocal()
     maven {
-        url = uri("http://www.machinemc.org/releases")
-        isAllowInsecureProtocol = true
-    }
-
-    maven {
         url = uri("https://repo.maven.apache.org/maven2/")
     }
 }

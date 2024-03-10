@@ -106,3 +106,5 @@ compound.set("test", 10);
 compound.set("thing", -5.2);
 compound.set("ints", new int[]{1, 2, 3});
 ```
+
+More examples can be found in the [unit tests](src/test/java/org/machinemc/nbt).

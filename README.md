@@ -69,7 +69,10 @@ repositories {
 }
 
 dependencies {
-    implementation("org.machinemc:nbt:VERSION")
+    implementation("org.machinemc:nbt-core:VERSION")
+
+    // for the SNBT parser
+    implementation("org.machinemc:nbt-parser:VERSION")
 }
 ```
 
@@ -84,13 +87,18 @@ dependencies {
     </repository>
 </repositories>
 
-<!-- ... -->
-
 <dependencies>
     <dependency>
         <groupId>org.machinemc</groupId>
-        <artifactId>nbt</artifactId>
-        <version>2.0.0</version>
+        <artifactId>nbt-core</artifactId>
+        <version>VERSION</version>
+    </dependency>
+
+    <!-- for the SNBT parser -->
+    <dependency>
+        <groupId>org.machinemc</groupId>
+        <artifactId>nbt-parser</artifactId>
+        <version>VERSION</version>
     </dependency>
 </dependencies>
 ```

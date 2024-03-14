@@ -17,7 +17,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "org.machinemc"
-            artifactId = "nbt-parser"
+            artifactId = "nbt-core"
             version = project.version.toString()
             from(components["java"])
         }

@@ -1,9 +1,12 @@
-<h1 align="center">NBT<br></h1>
+![banner](.github/assets/nbt_dark.png#gh-dark-mode-only)
+![banner](.github/assets/nbt_light.png#gh-light-mode-only)
 
-<h4 align="center">Java Implementation for Minecraft Java Edition NBT Format</h4>
+<p align="center">Java Implementation for Minecraft Java Edition NBT Format.</p>
 
-[![license](https://img.shields.io/github/license/machinemc/nbt?style=for-the-badge&color=657185)](LICENCE)
-![release](https://img.shields.io/github/v/release/machinemc/nbt?style=for-the-badge&color=edb228)
+<p align="center">
+    <img src="https://img.shields.io/github/license/machinemc/nbt?style=for-the-badge&color=107185" alt="LICENSE">
+    <img src="https://img.shields.io/github/v/release/machinemc/nbt?style=for-the-badge&color=edb228" alt="RELEASE">
+</p>
 
 ---
 
@@ -69,7 +72,10 @@ repositories {
 }
 
 dependencies {
-    implementation("org.machinemc:nbt:VERSION")
+    implementation("org.machinemc:nbt-core:VERSION")
+
+    // for the SNBT parser
+    implementation("org.machinemc:nbt-parser:VERSION")
 }
 ```
 
@@ -84,13 +90,18 @@ dependencies {
     </repository>
 </repositories>
 
-<!-- ... -->
-
 <dependencies>
     <dependency>
         <groupId>org.machinemc</groupId>
-        <artifactId>nbt</artifactId>
-        <version>2.0.0</version>
+        <artifactId>nbt-core</artifactId>
+        <version>VERSION</version>
+    </dependency>
+
+    <!-- for the SNBT parser -->
+    <dependency>
+        <groupId>org.machinemc</groupId>
+        <artifactId>nbt-parser</artifactId>
+        <version>VERSION</version>
     </dependency>
 </dependencies>
 ```
@@ -108,3 +119,6 @@ compound.set("ints", new int[]{1, 2, 3});
 ```
 
 More examples can be found in the [unit tests](src/test/java/org/machinemc/nbt).
+
+### License
+NBT is free software licensed under the [MIT license](LICENCE).

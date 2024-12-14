@@ -4,8 +4,8 @@
 <p align="center">Java Implementation for Minecraft Java Edition NBT Format.</p>
 
 <p align="center">
-    <img nbt-core/src="https://img.shields.io/github/license/machinemc/nbt?style=for-the-badge&color=107185" alt="LICENSE">
-    <img nbt-core/src="https://img.shields.io/github/v/release/machinemc/nbt?style=for-the-badge&color=edb228" alt="RELEASE">
+    <img src="https://img.shields.io/github/license/machinemc/nbt?style=for-the-badge&color=107185" alt="LICENSE">
+    <img src="https://img.shields.io/github/v/release/machinemc/nbt?style=for-the-badge&color=edb228" alt="RELEASE">
 </p>
 
 ---

@@ -19,19 +19,19 @@ The NBT specification defines _13 different types_ of tags:
 
 | Tag class                                                      | ID | Payload                                                                                                                                                                             |
 |----------------------------------------------------------------|----|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [End](src/main/java/org/machinemc/nbt/NBTEnd.java)             | 0  | 0 bytes                                                                                                                                                                             |
-| [Byte](src/main/java/org/machinemc/nbt/NBTByte.java)           | 1  | 1 byte / 8 bits, signed                                                                                                                                                             |
-| [Short](src/main/java/org/machinemc/nbt/NBTShort.java)         | 2  | 2 bytes / 16 bits, signed, big endian                                                                                                                                               |
-| [Int](src/main/java/org/machinemc/nbt/NBTInt.java)             | 3  | 4 bytes / 32 bits, signed, big endian                                                                                                                                               |
-| [Long](src/main/java/org/machinemc/nbt/NBTLong.java)           | 4  | 8 bytes / 64 bits, signed, big endian                                                                                                                                               |
-| [Float](src/main/java/org/machinemc/nbt/NBTFloat.java)         | 5  | 4 bytes / 32 bits, signed, big endian, IEEE 754-2008, binary32                                                                                                                      |
-| [Double](src/main/java/org/machinemc/nbt/NBTDouble.java)       | 6  | 8 bytes / 64 bits, signed, big endian, IEEE 754-2008, binary64                                                                                                                      |
-| [ByteArray](src/main/java/org/machinemc/nbt/NBTByteArray.java) | 7  | A signed integer (4 bytes) size, then the bytes comprising an array of length size.                                                                                                 |
-| [String](src/main/java/org/machinemc/nbt/NBTString.java)       | 8  | An unsigned short (2 bytes) payload length, then a UTF-8 string resembled by length bytes.                                                                                          |
-| [List](src/main/java/org/machinemc/nbt/NBTList.java)           | 9  | A byte denoting the tag ID of the list's contents, followed by the list's length as a signed integer (4 bytes), then length number of payloads that correspond to the given tag ID. |
-| [Compound](src/main/java/org/machinemc/nbt/NBTCompound.java)   | 10 | Fully formed tags, followed by a TAG_End.                                                                                                                                           |
-| [IntArray](src/main/java/org/machinemc/nbt/NBTIntArray.java)   | 11 | A signed integer size, then size number of TAG_Int's payloads.                                                                                                                      |
-| [LongArray](src/main/java/org/machinemc/nbt/NBTLongArray.java) | 12 | A signed integer size, then size number of TAG_Long's payloads.                                                                                                                     |
+| [End](nbt-core/src/main/java/org/machinemc/nbt/NBTEnd.java)             | 0  | 0 bytes                                                                                                                                                                             |
+| [Byte](nbt-core/src/main/java/org/machinemc/nbt/NBTByte.java)           | 1  | 1 byte / 8 bits, signed                                                                                                                                                             |
+| [Short](nbt-core/src/main/java/org/machinemc/nbt/NBTShort.java)         | 2  | 2 bytes / 16 bits, signed, big endian                                                                                                                                               |
+| [Int](nbt-core/src/main/java/org/machinemc/nbt/NBTInt.java)             | 3  | 4 bytes / 32 bits, signed, big endian                                                                                                                                               |
+| [Long](nbt-core/src/main/java/org/machinemc/nbt/NBTLong.java)           | 4  | 8 bytes / 64 bits, signed, big endian                                                                                                                                               |
+| [Float](nbt-core/src/main/java/org/machinemc/nbt/NBTFloat.java)         | 5  | 4 bytes / 32 bits, signed, big endian, IEEE 754-2008, binary32                                                                                                                      |
+| [Double](nbt-core/src/main/java/org/machinemc/nbt/NBTDouble.java)       | 6  | 8 bytes / 64 bits, signed, big endian, IEEE 754-2008, binary64                                                                                                                      |
+| [ByteArray](nbt-core/src/main/java/org/machinemc/nbt/NBTByteArray.java) | 7  | A signed integer (4 bytes) size, then the bytes comprising an array of length size.                                                                                                 |
+| [String](nbt-core/src/main/java/org/machinemc/nbt/NBTString.java)       | 8  | An unsigned short (2 bytes) payload length, then a UTF-8 string resembled by length bytes.                                                                                          |
+| [List](nbt-core/src/main/java/org/machinemc/nbt/NBTList.java)           | 9  | A byte denoting the tag ID of the list's contents, followed by the list's length as a signed integer (4 bytes), then length number of payloads that correspond to the given tag ID. |
+| [Compound](nbt-core/src/main/java/org/machinemc/nbt/NBTCompound.java)   | 10 | Fully formed tags, followed by a TAG_End.                                                                                                                                           |
+| [IntArray](nbt-core/src/main/java/org/machinemc/nbt/NBTIntArray.java)   | 11 | A signed integer size, then size number of TAG_Int's payloads.                                                                                                                      |
+| [LongArray](nbt-core/src/main/java/org/machinemc/nbt/NBTLongArray.java) | 12 | A signed integer size, then size number of TAG_Long's payloads.                                                                                                                     |
 
 * Every valid NBT structure starts with a compound tag, known as the root compound.
   All other elements within the NBT structure are nested within this root compound.
@@ -118,7 +118,7 @@ compound.set("thing", -5.2);
 compound.set("ints", new int[]{1, 2, 3});
 ```
 
-More examples can be found in the [unit tests](src/test/java/org/machinemc/nbt).
+More examples can be found in the [unit tests](nbt-core/src/test/java/org/machinemc/nbt).
 
 ### License
 NBT is free software licensed under the [MIT license](LICENCE).
